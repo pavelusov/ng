@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
-import { Counter } from "./components/counter/Counter";
+import { Achievements } from "@/widgets/achievements/ui/Achievements";
+import { Contacts } from "@/widgets/contacts/ui/Contacts";
+import { Footer } from "@/widgets/footer/ui/Footer";
+import { Hero } from "@/widgets/hero/ui/Hero";
+import { Services } from "@/widgets/services/ui/Services";
 
 export default function IndexPage() {
-  return <Counter />;
+  return (
+    <main>
+      <Hero />
+      <Services />
+      <Contacts />
+      <Achievements />
+      <Footer />
+    </main>
+  );
 }
 
 export const metadata: Metadata = {
-  title: "Redux Toolkit",
+  title: "New Gorisons",
 };
