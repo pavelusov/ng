@@ -18,5 +18,5 @@ export default function IndexPage() {
 }
 
 export const metadata: Metadata = {
-  title: "New Gorisons",
+  title: "Новые горизонты",
 };
