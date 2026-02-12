@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Box, Container, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 
@@ -99,13 +100,21 @@ export const Hero = () => {
         display: "flex",
         alignItems: "center",
         bgcolor: "common.black",
-        // If the video renderer leaves a 1px seam, show the same frame underneath.
-        backgroundImage: `url(${posterSrc})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Background image as fallback if video doesn't load */}
+      <Image
+        src={posterSrc}
+        alt="Новые Горизонты"
+        fill
+        priority
+        style={{
+          objectFit: "cover",
+          objectPosition: "center",
+          zIndex: 0,
+        }}
+      />
+
       {shouldLoadVideo && videoSrc ? (
         <Box
           component="video"
@@ -131,7 +140,7 @@ export const Hero = () => {
             willChange: "transform",
             backfaceVisibility: "hidden",
             bgcolor: "common.black",
-            zIndex: 0,
+            zIndex: 1,
           }}
         />
       ) : null}
@@ -141,7 +150,7 @@ export const Hero = () => {
         sx={{
           position: "absolute",
           inset: 0,
-          zIndex: 1,
+          zIndex: 2,
           backgroundImage:
             "radial-gradient(1200px 700px at 60% 40%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.75) 100%)",
           opacity: 0.6,
@@ -173,7 +182,7 @@ export const Hero = () => {
         aria-hidden
         sx={{
           position: "absolute",
-          zIndex: 1.5,
+          zIndex: 2.5,
           width: GRID_SIZE,
           height: GRID_SIZE,
           left: hoverCell.x,
@@ -188,7 +197,7 @@ export const Hero = () => {
         }}
       />
 
-      <Container sx={{ position: "relative", zIndex: 2 }}>
+      <Container sx={{ position: "relative", zIndex: 3 }}>
         <Stack spacing={{ xs: 2.5, md: 3 }} alignItems="center" textAlign="center">
           {/* <Box
             component="img"

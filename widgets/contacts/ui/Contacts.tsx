@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Box, SvgIcon, Stack, Typography } from "@mui/material";
 import TelegramIcon from "@mui/icons-material/Telegram";
 import VerifiedIcon from "@mui/icons-material/Verified";
@@ -49,10 +50,7 @@ export const Contacts = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-end",
-        backgroundImage: "url(/contacts.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        overflow: "hidden",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -60,13 +58,24 @@ export const Contacts = () => {
           background:
             "linear-gradient(90deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 35%, transparent 60%)",
           pointerEvents: "none",
+          zIndex: 1,
         },
       }}
     >
+      <Image
+        src="/contacts.jpg"
+        alt="Контакты"
+        fill
+        priority
+        style={{
+          objectFit: "cover",
+          objectPosition: "center",
+        }}
+      />
       <Box
         sx={{
           position: "relative",
-          zIndex: 1,
+          zIndex: 2,
           width: "100%",
           minHeight: "inherit",
           display: "grid",
