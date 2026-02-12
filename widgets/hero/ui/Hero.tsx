@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Container, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const Hero = () => {
   const theme = useTheme();
@@ -9,19 +9,59 @@ export const Hero = () => {
     noSsr: true,
   });
   const isLight = theme.palette.mode === "light";
-  const videoSrc = isLight
-    ? "/hero-bg_video_house_day_convert.mp4"
-    : isMobile
-      ? "/hero-bg_video_house_vertical.mp4"
-      : "/hero-bg_video_house.mp4";
   const posterSrc = isLight ? "/hero-bg-house_static_day.jpg" : "/hero-bg-house_static.jpg";
   const GRID_SIZE = 122;
+
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
 
   const [hoverCell, setHoverCell] = useState<{ x: number; y: number; visible: boolean }>({
     x: 0,
     y: 0,
     visible: false,
   });
+
+  // Устанавливаем флаг монтирования и определяем правильный источник видео
+  useEffect(() => {
+    setIsMounted(true);
+    
+    // Определяем нужное видео только на клиенте
+    const src = isLight
+      ? "/hero-bg_video_house_day_convert.mp4"
+      : isMobile
+        ? "/hero-bg_video_house_vertical.mp4"
+        : "/hero-bg_video_house.mp4";
+    
+    setVideoSrc(src);
+  }, [isLight, isMobile]);
+
+  // Загружаем видео после монтирования
+  useEffect(() => {
+    if (!isMounted || !videoSrc) return;
+
+    // Если десктоп - загружаем видео сразу
+    if (!isMobile) {
+      setShouldLoadVideo(true);
+      return;
+    }
+
+    // Если мобайл - ждем полной загрузки страницы
+    const loadVideo = () => {
+      if (document.readyState === "complete") {
+        setTimeout(() => {
+          setShouldLoadVideo(true);
+        }, 100);
+      }
+    };
+
+    if (document.readyState === "complete") {
+      loadVideo();
+    } else {
+      window.addEventListener("load", loadVideo);
+      return () => window.removeEventListener("load", loadVideo);
+    }
+  }, [isMobile, isMounted, videoSrc]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
@@ -66,33 +106,35 @@ export const Hero = () => {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <Box
-        component="video"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        poster={posterSrc}
-        src={videoSrc}
-        sx={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          minWidth: "100%",
-          minHeight: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
-          display: "block",
-          // Reduce 1px seams from GPU/subpixel rounding without changing crop
-          transform: "translateZ(0)",
-          willChange: "transform",
-          backfaceVisibility: "hidden",
-          bgcolor: "common.black",
-          zIndex: 0,
-        }}
-      />
+      {shouldLoadVideo && videoSrc ? (
+        <Box
+          component="video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={posterSrc}
+          src={videoSrc}
+          sx={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            minWidth: "100%",
+            minHeight: "100%",
+            objectFit: "cover",
+            objectPosition: "center",
+            display: "block",
+            // Reduce 1px seams from GPU/subpixel rounding without changing crop
+            transform: "translateZ(0)",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
+            bgcolor: "common.black",
+            zIndex: 0,
+          }}
+        />
+      ) : null}
 
       <Box
         aria-hidden
@@ -148,6 +190,16 @@ export const Hero = () => {
 
       <Container sx={{ position: "relative", zIndex: 2 }}>
         <Stack spacing={{ xs: 2.5, md: 3 }} alignItems="center" textAlign="center">
+          {/* <Box
+            component="img"
+            src="/logo-test-01.png"
+            alt="Новые Горизонты"
+            sx={{
+              width: { xs: 120, sm: 180, md: 240 },
+              height: "auto",
+              mb: { xs: 1, md: 2 },
+            }}
+          /> */}
           <Typography
             component="h1"
             sx={{
@@ -156,15 +208,23 @@ export const Hero = () => {
               lineHeight: 0.86,
               letterSpacing: "-0.03em",
               textTransform: "none",
-              fontSize: { xs: 70, sm: 104, md: 140 },
+              fontSize: { xs: 60, sm: 104, md: 140 },
               textWrap: "balance",
               mx: "auto",
+              position: "relative",
             }}
           >
-            <Box component="span" sx={{ display: "block", transform: "translate(-82px, 23px);" }}>
+            <Box 
+             position="absolute"
+             left={{ xs: "17.5px", sm: "30.4px", md: "41px" }}
+             top={{ xs: "-42px", sm: "-73px", md: "-98px" }}
+             component="span" 
+             sx={{ display: "block" }}>
               Новые
             </Box>
-            <Box component="span" sx={{ display: "block", transform: "translateX(18px)" }}>
+            <Box 
+             component="span" 
+             sx={{ display: "block" }}>
               Горизонты
             </Box>
           </Typography>
