@@ -25,3 +25,58 @@ pnpm create next-app --example with-redux with-redux-app
 ```
 
 Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+
+## Local Postgres (Docker)
+
+The project is configured to use a local Postgres instance via `DATABASE_URL` in `.env`:
+
+```text
+DATABASE_URL="postgres://postgres:postgres@localhost:5421/new_gorisons"
+```
+
+### Start database
+
+```bash
+docker compose up -d
+```
+
+### Stop database
+
+```bash
+docker compose down
+```
+
+### Stop database and delete data
+
+```bash
+docker compose down -v
+```
+
+### View logs
+
+```bash
+docker compose logs -f postgres
+```
+
+## Prisma seed & admin
+
+### Seed initial services
+
+```bash
+npm run db:seed
+```
+
+### (Important) Generate Prisma client for Next build
+
+Because Prisma generates TypeScript entrypoints that import `*.js` files (ESM),
+run:
+
+```bash
+npm run db:generate
+```
+
+### Admin UI (dev only)
+
+Start the app and open:
+
+- `/admin/services`

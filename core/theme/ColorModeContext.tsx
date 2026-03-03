@@ -26,7 +26,7 @@ export function ColorModeProvider({
 }: {
   readonly children: ReactNode;
 }) {
-  const [mode, setModeState] = useState<PaletteMode>("dark");
+  const [mode, setModeState] = useState<PaletteMode>("light");
 
   useEffect(() => {
     const saved =
@@ -36,7 +36,7 @@ export function ColorModeProvider({
       return;
     }
     // Default mode: always dark unless user explicitly selected otherwise.
-    setModeState("dark");
+    setModeState("light");
   }, []);
 
   const setMode = useCallback((next: PaletteMode) => {

@@ -68,6 +68,10 @@ export function createAppTheme(mode: PaletteMode) {
       },
     },
     custom: {
+      bgColors: {
+        primary: mode === "dark" ? "#0F120E" : "#F2E8DE",
+        secondary: mode === "dark" ? "#34231c" : "#795243",
+      },
       gradients: {
         sunset:
           mode === "dark"
@@ -93,7 +97,16 @@ export function createAppTheme(mode: PaletteMode) {
                 t.primary,
                 0.02,
               )} 100%)`,
-      },
+        // Хедер: светлая тема — холодные цвета (маджента → синий → бирюза), тёмная — тёплые (оранж → красно-оранж → пурпур)
+        header:
+          mode === "dark"
+            ? `linear-gradient(170deg,rgb(255, 136, 0) 0%, #FFB700 25%, #E65100 50%, #BF360C 70%, #8E24AA 100%)`
+            : `linear-gradient(170deg,rgb(6, 123, 117) 0%,rgb(4, 67, 51) 25%,rgb(74, 74, 74) 50%,rgb(39, 39, 39) 75%, rgb(3, 44, 41) 100%)`,
+        footer:
+            mode === "dark"
+              ? `linear-gradient(170deg,rgb(255, 136, 0) 0%, #FFB700 25%, #E65100 50%, #BF360C 70%, #8E24AA 100%)`
+              : `linear-gradient(170deg,rgb(6, 123, 117) 0%,rgb(4, 67, 51) 25%,rgba(2, 58, 71, 0.48) 50%, rgb(3, 44, 41) 100%)`,   
+      }
     },
     shape: { borderRadius: 16 },
     typography: {

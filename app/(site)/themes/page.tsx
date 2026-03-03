@@ -208,8 +208,7 @@ export default function ThemesPage() {
                 Live preview (current theme)
               </Typography>
               <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                primary: {theme.palette.primary.main} • secondary:{" "}
-                {theme.palette.secondary.main}
+                primary: {theme.palette.primary.main} • secondary: {theme.palette.secondary.main}
               </Typography>
             </Stack>
           </Paper>

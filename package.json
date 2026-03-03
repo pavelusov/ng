@@ -3,7 +3,16 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint",
+    "db:test": "tsx scripts/test-database.ts",
+    "db:seed": "tsx scripts/seed-services.ts",
+    "db:generate": "prisma generate && tsc -p tsconfig.prisma-client.json",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:migrate:status": "prisma migrate status",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -12,7 +21,10 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/material-nextjs": "^7.3.7",
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "@reduxjs/toolkit": "^2.2.0",
+    "dotenv": "^17.3.1",
     "next": "latest",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -22,6 +34,8 @@
     "@types/node": "20.2.5",
     "@types/react": "18.2.37",
     "@types/react-dom": "^18.2.18",
-    "typescript": "^5.3.3"
+    "prisma": "^7.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
   }
 }

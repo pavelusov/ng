@@ -10,6 +10,16 @@ declare module "@mui/material/styles" {
         sky: string;
         /** Glassy overlay for translucent surfaces */
         glass: string;
+        /** Header: visible gradient (light beige → warmer beige in light; subtle tint in dark) */
+        header: string;
+        /** Footer: visible gradient (light beige → warmer beige in light; subtle tint in dark) */
+        footer: string;
+      };
+      bgColors: {
+        /** Background color for dark mode */
+        primary: string;
+        /** Background color for light mode */
+        secondary: string;
       };
     };
   }

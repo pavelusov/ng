@@ -2,6 +2,7 @@
 
 import {
   Box,
+  CircularProgress,
   Container,
   Link,
   List,
@@ -11,8 +12,9 @@ import {
   Typography,
 } from "@mui/material";
 import TelegramIcon from "@mui/icons-material/Telegram";
-import { mainServices } from "@/widgets/services/model/mainServices";
-import { legalServices } from "@/widgets/services/model/legalServices";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import type { ServiceRecord } from "@/entities/service";
 
 const COMPANY_NAME = "Новые горизонты";
 const PHONE = "+7 922 104 75 86";
@@ -20,14 +22,38 @@ const TELEGRAM_URL = "https://t.me/+79221047586";
 
 export const Footer = () => {
   const year = new Date().getFullYear();
+  const [services, setServices] = useState<ServiceRecord[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch services");
+        return res.json() as Promise<ServiceRecord[]>;
+      })
+      .then(setServices)
+      .catch(() => setServices([]));
+  }, []);
+
+  const mainServices = useMemo(
+    () =>
+      (services ?? [])
+        .filter((s) => s.category === "main")
+        .map((s) => ({ title: s.title })),
+    [services]
+  );
+  const legalServiceTitles = useMemo(
+    () => (services ?? []).filter((s) => s.category === "legal").map((s) => s.title),
+    [services]
+  );
 
   return (
     <Box
       component="footer"
       sx={{
-        bgcolor: "background.default",
-        color: (theme) =>
-          theme.palette.mode === "dark" ? "common.white" : theme.palette.text.primary,
+        bgcolor: (theme) => theme.custom.bgColors.secondary,
+        // color: (theme) =>
+        //   theme.palette.mode === "dark" ? "common.white" : theme.palette.text.primary,
+        color: "common.white",
         pt: { xs: 6, md: 8 },
         pb: 3,
       }}
@@ -46,6 +72,7 @@ export const Footer = () => {
             <Typography
               component="p"
               sx={{
+                // flex: { xs: "none", sm: 1 },
                 fontWeight: 900,
                 fontSize: { xs: 32, sm: 40, md: 48 },
                 letterSpacing: "-0.02em",
@@ -55,10 +82,21 @@ export const Footer = () => {
             >
               {COMPANY_NAME}
             </Typography>
+            <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+              <Image
+                src="/logo.svg"
+                alt=""
+                width={150}
+                height={100}
+                style={{ objectFit: "contain" }}
+              />
+            </Box>
             <Box
               sx={{
+                // flex: { xs: "none", sm: 1 },
                 display: "flex",
                 alignItems: "center",
+                justifyContent: "flex-end",
                 gap: 1.5,
                 flexWrap: "wrap",
               }}
@@ -97,7 +135,7 @@ export const Footer = () => {
               gridTemplateColumns: {
                 xs: "1fr",
                 sm: "1fr 1fr",
-                lg: "minmax(0, max-content) 1fr",
+                lg: "1fr 2fr",
               },
               gap: { xs: 4, md: 6 },
               alignItems: "start",
@@ -107,54 +145,72 @@ export const Footer = () => {
               <Typography variant="overline" sx={{ opacity: 0.8, fontWeight: 700 }}>
                 Основные услуги
               </Typography>
-              <List dense disablePadding sx={{ listStyle: "none" }}>
-                {mainServices.map((item) => (
-                  <ListItem key={item.title} disableGutters sx={{ py: 0.25 }}>
-                    <ListItemText
-                      primary={item.title}
-                      primaryTypographyProps={{
-                        sx: {
-                          fontSize: 14,
-                          color: (theme) =>
-                            theme.palette.mode === "dark" ? "grey.300" : "text.secondary",
-                        },
-                      }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              {!services ? (
+                <Box sx={{ py: 1 }}>
+                  <CircularProgress size={18} sx={{ color: "secondary.main" }} />
+                </Box>
+              ) : (
+                <List dense disablePadding sx={{ listStyle: "none" }}>
+                  {mainServices.map((item) => (
+                    <ListItem key={item.title} disableGutters sx={{ py: 0.25 }}>
+                      <ListItemText
+                        primary={item.title}
+                        primaryTypographyProps={{
+                          sx: {
+                            fontSize: 14,
+                            color: "common.white",
+                          },
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Stack>
 
             <Stack spacing={1} alignItems="flex-start">
               <Typography variant="overline" sx={{ opacity: 0.8, fontWeight: 700 }}>
                 Юридические услуги
               </Typography>
-              <List
-                dense
-                disablePadding
-                sx={{
-                  listStyle: "none",
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-                  columnGap: { xs: 0, sm: 2 },
-                  alignItems: "start",
-                }}
-              >
-                {legalServices.map((title) => (
-                  <ListItem key={title} disableGutters sx={{ py: 0.25, alignItems: "flex-start" }}>
-                    <ListItemText
-                      primary={title}
-                      primaryTypographyProps={{
-                        sx: {
-                          fontSize: 14,
-                          color: (theme) =>
-                            theme.palette.mode === "dark" ? "grey.300" : "text.secondary",
-                        },
-                      }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              {!services ? (
+                <Box sx={{ py: 1 }}>
+                  <CircularProgress size={18} sx={{ color: "secondary.main" }} />
+                </Box>
+              ) : (
+                <List
+                  dense
+                  disablePadding
+                  sx={{
+                    listStyle: "none",
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, 1fr)",
+                      md: "repeat(3, 1fr)",
+                    },
+                    columnGap: { xs: 0, sm: 2, md: 3 },
+                    alignItems: "start",
+                  }}
+                >
+                  {legalServiceTitles.map((title) => (
+                    <ListItem
+                      key={title}
+                      disableGutters
+                      sx={{ py: 0.25, alignItems: "flex-start" }}
+                    >
+                      <ListItemText
+                        primary={title}
+                        primaryTypographyProps={{
+                          sx: {
+                            fontSize: 14,
+                            color: "common.white",
+                          },
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Stack>
           </Box>
 
