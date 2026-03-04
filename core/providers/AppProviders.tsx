@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { ColorModeProvider, useColorMode } from "@/core/theme/ColorModeContext";
 import { createAppTheme } from "@/core/theme/createAppTheme";
+import { ReduxProvider } from "@/core/providers/ReduxProvider";
 
 interface Props {
   readonly children: ReactNode;
@@ -16,7 +17,7 @@ const InnerProviders = ({ children }: Props) => {
   const theme = useMemo(() => createAppTheme(mode), [mode]);
 
   return (
-    <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+    <AppRouterCacheProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}
@@ -27,9 +28,11 @@ const InnerProviders = ({ children }: Props) => {
 
 export const AppProviders = ({ children }: Props) => {
   return (
-    <ColorModeProvider>
-      <InnerProviders>{children}</InnerProviders>
-    </ColorModeProvider>
+    <ReduxProvider>
+      <ColorModeProvider>
+        <InnerProviders>{children}</InnerProviders>
+      </ColorModeProvider>
+    </ReduxProvider>
   );
 };
 

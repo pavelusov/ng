@@ -121,12 +121,32 @@ export function createAppTheme(mode: PaletteMode) {
     },
     components: {
       MuiCssBaseline: {
-        styleOverrides: {
-          body: {
-            // Improve font rendering on dark backgrounds.
-            WebkitFontSmoothing: "antialiased",
-            MozOsxFontSmoothing: "grayscale",
-          },
+        styleOverrides: (theme) => {
+          const autofillBg =
+            theme.palette.mode === "dark"
+              ? alpha(theme.palette.background.paper, 0.92)
+              : "#fff";
+
+          return {
+            body: {
+              // Improve font rendering on dark backgrounds.
+              WebkitFontSmoothing: "antialiased",
+              MozOsxFontSmoothing: "grayscale",
+            },
+            // Prevent browser autofill from painting blue/yellow backgrounds.
+            // Kept global and minimal to preserve default MUI label/padding behavior.
+            "input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill, .MuiInputBase-input:-webkit-autofill, .MuiOutlinedInput-input:-webkit-autofill": {
+              WebkitBoxShadow: `0 0 0 1000px ${autofillBg} inset !important`,
+              boxShadow: `0 0 0 1000px ${autofillBg} inset !important`,
+              WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+              caretColor: `${theme.palette.text.primary} !important`,
+              transition: "background-color 9999s ease-out 0s",
+            },
+            "input:-webkit-autofill:focus, textarea:-webkit-autofill:focus, select:-webkit-autofill:focus, .MuiInputBase-input:-webkit-autofill:focus, .MuiOutlinedInput-input:-webkit-autofill:focus": {
+              WebkitBoxShadow: `0 0 0 1000px ${autofillBg} inset !important`,
+              boxShadow: `0 0 0 1000px ${autofillBg} inset !important`,
+            },
+          };
         },
       },
       MuiButton: {

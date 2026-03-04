@@ -11,10 +11,8 @@ import type { ServiceRecord } from "@/entities/service";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 function recordToMainItem(record: ServiceRecord): MainServiceItem {
-  const Icon =
-    record.icon != null
-      ? SERVICE_ICON_MAP[record.icon]
-      : MapRoundedIcon;
+  const mappedIcon = record.icon != null ? SERVICE_ICON_MAP[record.icon] : undefined;
+  const Icon = mappedIcon ?? MapRoundedIcon;
   return {
     title: record.title,
     description: record.description ?? "",
