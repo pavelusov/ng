@@ -16,7 +16,7 @@ type Props = {
 
 export function ServiceCardList({ title, subtitle, items, columns }: Props) {
   return (
-    <Stack spacing={{ xs: 2, md: 2.5 }}>
+    <Stack spacing={{ xs: 2, md: 2.5 }} >
       <Stack spacing={0.75}>
         <Typography
           component="h2"

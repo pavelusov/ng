@@ -51,6 +51,7 @@ export default async function ServicePage({ params }: Props) {
         component="section"
         sx={{
           py: { xs: 4, md: 6 },
+          pt: { xs: 14, md: 16 },
           bgcolor: "background.default",
         }}
       >
@@ -99,13 +100,20 @@ export default async function ServicePage({ params }: Props) {
               )}
             </Box>
 
-            <Stack spacing={3}>
-              <Stack spacing={1.5}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 3,
+                alignItems: { xs: "stretch", md: "flex-start" },
+              }}
+            >
+              <Stack spacing={1.5} sx={{ flex: { md: "1 1 0%" }, minWidth: 0 }}>
                 <Typography
                   component="h1"
                   variant="h4"
                   sx={{
-                    fontWeight: 900,
+                    fontWeight: 700,
                     letterSpacing: "-0.02em",
                     lineHeight: 1.2,
                   }}
@@ -131,7 +139,7 @@ export default async function ServicePage({ params }: Props) {
                   borderRadius: 1.5,
                   borderColor: "divider",
                   bgcolor: "background.paper",
-                  alignSelf: "flex-start",
+                  flexShrink: 0,
                 }}
               >
                 <Stack spacing={2} alignItems="flex-start">
@@ -159,7 +167,7 @@ export default async function ServicePage({ params }: Props) {
                   </Link>
                 </Stack>
               </Paper>
-            </Stack>
+            </Box>
           </Box>
         </Container>
       </Box>

@@ -1,16 +1,15 @@
 "use client";
 
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
-import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import Link from "next/link";
+import { ProfileMenu } from "./ProfileMenu";
 
 const NAV_ITEMS = [
   { label: "Заказы", icon: ShoppingBagOutlinedIcon, href: "#orders" },
   { label: "Избранное", icon: FavoriteBorderRoundedIcon, href: "#favorites" },
-  { label: "Профиль", icon: PersonOutlineRoundedIcon, href: "#profile" },
   { label: "Корзина", icon: ShoppingCartOutlinedIcon, href: "#cart" },
 ] as const;
 
@@ -60,5 +59,6 @@ export const HeaderNav = () => (
         </Typography>
       </Box>
     ))}
+    <ProfileMenu />
   </Box>
 );

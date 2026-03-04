@@ -28,14 +28,43 @@ export const Header = () => {
           flexWrap: "wrap",
           gap: { xs: 1, sm: 0 },
           alignItems: "center",
-          justifyContent: "space-between",
           width: "100%",
         }}
       >
-        
-        <HeaderLogo />
-        <HeaderSearch />
-        <HeaderNav />
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "center",
+          }}
+        >
+          <HeaderLogo />
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            px: { sm: 2 },
+          }}
+        >
+          <HeaderSearch />
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+          }}
+        >
+          <HeaderNav />
+        </Box>
       </Toolbar>
     </AppBar>
   );

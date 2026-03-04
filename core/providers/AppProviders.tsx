@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { ColorModeProvider, useColorMode } from "@/core/theme/ColorModeContext";
 import { createAppTheme } from "@/core/theme/createAppTheme";
 import { ReduxProvider } from "@/core/providers/ReduxProvider";
+import { AuthProvider } from "@/core/providers/AuthProvider";
 
 interface Props {
   readonly children: ReactNode;
@@ -29,9 +30,11 @@ const InnerProviders = ({ children }: Props) => {
 export const AppProviders = ({ children }: Props) => {
   return (
     <ReduxProvider>
-      <ColorModeProvider>
-        <InnerProviders>{children}</InnerProviders>
-      </ColorModeProvider>
+      <AuthProvider>
+        <ColorModeProvider>
+          <InnerProviders>{children}</InnerProviders>
+        </ColorModeProvider>
+      </AuthProvider>
     </ReduxProvider>
   );
 };

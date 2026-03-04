@@ -2,8 +2,56 @@
 
 import Link from "next/link";
 import { Box, Button, Paper, Stack, TextField, Typography } from "@mui/material";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? "Не удалось зарегистрироваться");
+        return;
+      }
+
+      const signInRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInRes?.error) {
+        router.push("/signin");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Не удалось зарегистрироваться. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -35,18 +83,43 @@ export default function SignUpPage() {
             Создайте аккаунт, чтобы начать работу.
           </Typography>
 
-          <TextField label="Имя" fullWidth autoComplete="name" size="medium" />
-          <TextField label="Email" type="email" fullWidth autoComplete="email" />
-          <TextField
-            label="Пароль"
-            type="password"
-            fullWidth
-            autoComplete="new-password"
-          />
+          <Box component="form" onSubmit={onSubmit}>
+            <Stack spacing={2.5}>
+              <TextField
+                label="Имя"
+                fullWidth
+                autoComplete="name"
+                size="medium"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={loading}
+              />
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+              <TextField
+                label="Пароль"
+                type="password"
+                fullWidth
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                error={Boolean(error)}
+                helperText={error ?? " "}
+              />
 
-          <Button variant="contained" size="large" fullWidth>
-            Создать аккаунт
-          </Button>
+              <Button variant="contained" size="large" fullWidth color="secondary" type="submit" disabled={loading}>
+                Создать аккаунт
+              </Button>
+            </Stack>
+          </Box>
 
           <Typography variant="body2" color="text.secondary">
             Уже есть аккаунт?{" "}

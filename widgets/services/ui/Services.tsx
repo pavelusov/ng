@@ -54,7 +54,7 @@ export const Services = () => {
       id="services"
       sx={{
         py: { xs: 7, md: 10 },
-        bgcolor: "background.paper",
+        bgcolor: "background.default",
       }}
     >
       <Container>

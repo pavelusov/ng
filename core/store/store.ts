@@ -1,10 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-
-const placeholderReducer = (state: Record<string, never> = {}) => state;
+import { authReducer } from "@/core/store/authSlice";
 
 export const makeStore = () =>
   configureStore({
-    reducer: placeholderReducer,
+    reducer: {
+      auth: authReducer,
+    },
   });
 
 export type AppStore = ReturnType<typeof makeStore>;

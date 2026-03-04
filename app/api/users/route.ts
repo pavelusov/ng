@@ -3,7 +3,15 @@ import prisma from "../../../lib/prisma";
 
 export async function GET(_request: NextRequest) {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
     return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -23,6 +31,13 @@ export async function POST(request: NextRequest) {
       data: {
         email: body.email,
         name: typeof body.name === "string" ? body.name : undefined,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

@@ -37,7 +37,7 @@ export function ServiceCard({ item }: Props) {
         borderRadius: 0.6,
         overflow: "hidden",
         borderColor: "divider",
-        bgcolor: "white",
+        bgcolor: "background.paper",
         boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
         transition: "box-shadow 0.2s ease, transform 0.2s ease",
         textDecoration: "none",
@@ -108,14 +108,12 @@ export function ServiceCard({ item }: Props) {
             sx={{
               position: "absolute",
               left: 12,
-              right: 12,
-              bottom: 12,
+              top: 12,
               py: 0.75,
               px: 1.5,
               borderRadius: "999px",
               bgcolor: "error.main",
               color: "error.contrastText",
-              textAlign: "center",
               fontSize: 13,
               fontWeight: 600,
             }}
@@ -195,7 +193,7 @@ export function ServiceCard({ item }: Props) {
             fontWeight: 700,
             textTransform: "none",
             bgcolor: "secondary.main",
-            color: "white !important",
+            color: "secondary.contrastText",
             "&:hover": { bgcolor: "secondary.light" },
           }}
         >
