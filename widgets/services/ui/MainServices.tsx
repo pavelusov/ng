@@ -7,10 +7,10 @@ import {
   type MainServiceItem,
 } from "@/widgets/services/model/mainServices";
 import { MainServiceCard } from "@/widgets/services/ui/MainServiceCard";
-import type { ServiceRecord } from "@/entities/service";
+import type { ServiceDto } from "@/entities/service";
 import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
-function recordToMainItem(record: ServiceRecord): MainServiceItem {
+function recordToMainItem(record: ServiceDto): MainServiceItem {
   const mappedIcon = record.icon != null ? SERVICE_ICON_MAP[record.icon] : undefined;
   const Icon = mappedIcon ?? MapRoundedIcon;
   return {
@@ -31,11 +31,11 @@ export const MainServices = () => {
     fetch("/api/services")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch services");
-        return res.json() as Promise<ServiceRecord[]>;
+        return res.json() as Promise<ServiceDto[]>;
       })
       .then((services) =>
         services
-          .filter((s): s is ServiceRecord => s.category === "main")
+          .filter((s) => s.category === "main")
           .map(recordToMainItem)
       )
       .then(setItems)

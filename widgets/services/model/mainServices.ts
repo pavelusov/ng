@@ -2,14 +2,7 @@ import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import ElectricBoltRoundedIcon from "@mui/icons-material/ElectricBoltRounded";
 import ArchitectureRoundedIcon from "@mui/icons-material/ArchitectureRounded";
 import type { ServiceIconKey } from "@/entities/service";
-
-export type ServicePaletteColor =
-  | "primary"
-  | "secondary"
-  | "info"
-  | "success"
-  | "warning"
-  | "error";
+import type { ServicePaletteColor } from "@/entities/service/types";
 
 export type MainServiceItem = {
   title: string;

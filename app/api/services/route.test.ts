@@ -2,21 +2,18 @@
 
 import { GET } from "./route";
 
-jest.mock("../../../lib/prisma", () => ({
+jest.mock("@/entities/service/api/service.repository", () => ({
   __esModule: true,
-  default: {
-    service: {
-      findMany: jest.fn(),
-    },
+  serviceRepository: {
+    getServices: jest.fn(),
   },
 }));
 
-import prisma from "../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
+import { legalService, mainService } from "@/tests/fixtures/services";
 
-const mockedPrisma = prisma as unknown as {
-  service: {
-    findMany: jest.Mock;
-  };
+const mockedRepository = serviceRepository as unknown as {
+  getServices: jest.Mock;
 };
 
 describe("GET /api/services", () => {
@@ -24,22 +21,20 @@ describe("GET /api/services", () => {
     jest.clearAllMocks();
   });
 
-  it("returns services ordered by category and title", async () => {
-    const rows = [{ id: "1", category: "main", title: "A" }];
-    mockedPrisma.service.findMany.mockResolvedValue(rows);
+  it("returns services", async () => {
+    const rows = [mainService, legalService];
+    mockedRepository.getServices.mockResolvedValue(rows);
 
     const response = await GET();
     const json = await response.json();
 
     expect(response.status).toBe(200);
     expect(json).toEqual(rows);
-    expect(mockedPrisma.service.findMany).toHaveBeenCalledWith({
-      orderBy: [{ category: "asc" }, { title: "asc" }],
-    });
+    expect(mockedRepository.getServices).toHaveBeenCalledTimes(1);
   });
 
-  it("returns 500 when prisma throws", async () => {
-    mockedPrisma.service.findMany.mockRejectedValue(new Error("db down"));
+  it("returns 500 when repository throws", async () => {
+    mockedRepository.getServices.mockRejectedValue(new Error("db down"));
 
     const response = await GET();
     const json = await response.json();

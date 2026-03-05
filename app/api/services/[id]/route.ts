@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "../../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
 
 export async function GET(
   _request: NextRequest,
@@ -8,7 +8,7 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const service = await prisma.service.findUnique({ where: { id } });
+    const service = await serviceRepository.getServiceById(id);
     if (!service) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

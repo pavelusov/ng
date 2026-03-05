@@ -14,7 +14,7 @@ import {
 import TelegramIcon from "@mui/icons-material/Telegram";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import type { ServiceRecord } from "@/entities/service";
+import type { ServiceDto } from "@/entities/service";
 
 const COMPANY_NAME = "Новые горизонты";
 const PHONE = "+7 922 104 75 86";
@@ -22,13 +22,13 @@ const TELEGRAM_URL = "https://t.me/+79221047586";
 
 export const Footer = () => {
   const year = new Date().getFullYear();
-  const [services, setServices] = useState<ServiceRecord[] | null>(null);
+  const [services, setServices] = useState<ServiceDto[] | null>(null);
 
   useEffect(() => {
     fetch("/api/services")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch services");
-        return res.json() as Promise<ServiceRecord[]>;
+        return res.json() as Promise<ServiceDto[]>;
       })
       .then(setServices)
       .catch(() => setServices([]));

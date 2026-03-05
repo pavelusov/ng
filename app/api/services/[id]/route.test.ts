@@ -3,21 +3,18 @@
 import type { NextRequest } from "next/server";
 import { GET } from "./route";
 
-jest.mock("../../../../lib/prisma", () => ({
+jest.mock("@/entities/service/api/service.repository", () => ({
   __esModule: true,
-  default: {
-    service: {
-      findUnique: jest.fn(),
-    },
+  serviceRepository: {
+    getServiceById: jest.fn(),
   },
 }));
 
-import prisma from "../../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
+import { mainService } from "@/tests/fixtures/services";
 
-const mockedPrisma = prisma as unknown as {
-  service: {
-    findUnique: jest.Mock;
-  };
+const mockedRepository = serviceRepository as unknown as {
+  getServiceById: jest.Mock;
 };
 
 describe("GET /api/services/[id]", () => {
@@ -26,8 +23,8 @@ describe("GET /api/services/[id]", () => {
   });
 
   it("returns service by id", async () => {
-    const row = { id: "svc-1", title: "Service" };
-    mockedPrisma.service.findUnique.mockResolvedValue(row);
+    const row = { ...mainService, id: "svc-1" };
+    mockedRepository.getServiceById.mockResolvedValue(row);
 
     const response = await GET({} as NextRequest, {
       params: Promise.resolve({ id: "svc-1" }),
@@ -36,13 +33,11 @@ describe("GET /api/services/[id]", () => {
 
     expect(response.status).toBe(200);
     expect(json).toEqual(row);
-    expect(mockedPrisma.service.findUnique).toHaveBeenCalledWith({
-      where: { id: "svc-1" },
-    });
+    expect(mockedRepository.getServiceById).toHaveBeenCalledWith("svc-1");
   });
 
   it("returns 404 when service is missing", async () => {
-    mockedPrisma.service.findUnique.mockResolvedValue(null);
+    mockedRepository.getServiceById.mockResolvedValue(null);
 
     const response = await GET({} as NextRequest, {
       params: Promise.resolve({ id: "missing" }),
@@ -53,8 +48,8 @@ describe("GET /api/services/[id]", () => {
     expect(json).toEqual({ error: "Not found" });
   });
 
-  it("returns 500 when prisma throws", async () => {
-    mockedPrisma.service.findUnique.mockRejectedValue(new Error("db error"));
+  it("returns 500 when repository throws", async () => {
+    mockedRepository.getServiceById.mockRejectedValue(new Error("db error"));
 
     const response = await GET({} as NextRequest, {
       params: Promise.resolve({ id: "svc-1" }),

@@ -29,12 +29,15 @@
     "@prisma/client": "^7.4.2",
     "@reduxjs/toolkit": "^2.2.0",
     "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "dotenv": "^17.3.1",
     "next": "latest",
     "next-auth": "^4.24.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.1.0"
+    "react-redux": "^9.1.0",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

@@ -3,23 +3,20 @@
 import type { NextRequest } from "next/server";
 import { DELETE, PATCH } from "./route";
 
-jest.mock("../../../../../lib/prisma", () => ({
+jest.mock("@/entities/service/api/service.repository", () => ({
   __esModule: true,
-  default: {
-    service: {
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
+  serviceRepository: {
+    updateService: jest.fn(),
+    deleteService: jest.fn(),
   },
 }));
 
-import prisma from "../../../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
+import { mainService } from "@/tests/fixtures/services";
 
-const mockedPrisma = prisma as unknown as {
-  service: {
-    update: jest.Mock;
-    delete: jest.Mock;
-  };
+const mockedRepository = serviceRepository as unknown as {
+  updateService: jest.Mock;
+  deleteService: jest.Mock;
 };
 
 const originalNodeEnv = process.env.NODE_ENV;
@@ -46,10 +43,10 @@ describe("Admin services API /api/admin/services/[id]", () => {
 
     expect(response.status).toBe(404);
     expect(json).toEqual({ error: "Not found" });
-    expect(mockedPrisma.service.update).not.toHaveBeenCalled();
+    expect(mockedRepository.updateService).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for invalid category in PATCH", async () => {
+  it("returns 400 for invalid payload in PATCH", async () => {
     const request = new Request("http://localhost/api/admin/services/1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -60,12 +57,20 @@ describe("Admin services API /api/admin/services/[id]", () => {
     const json = await response.json();
 
     expect(response.status).toBe(400);
-    expect(json).toEqual({ error: "Invalid category" });
-    expect(mockedPrisma.service.update).not.toHaveBeenCalled();
+    expect(json).toEqual(expect.objectContaining({ error: "Invalid payload" }));
+    expect(mockedRepository.updateService).not.toHaveBeenCalled();
   });
 
   it("updates service with nullable fields in PATCH", async () => {
-    mockedPrisma.service.update.mockResolvedValue({ id: "1", title: "Updated" });
+    mockedRepository.updateService.mockResolvedValue({
+      ...mainService,
+      id: "1",
+      title: "Updated",
+      category: "legal",
+      ctaHref: null,
+      image: null,
+      rating: null,
+    });
 
     const request = new Request("http://localhost/api/admin/services/1", {
       method: "PATCH",
@@ -83,21 +88,21 @@ describe("Admin services API /api/admin/services/[id]", () => {
     const json = await response.json();
 
     expect(response.status).toBe(200);
-    expect(json).toEqual({ id: "1", title: "Updated" });
-    expect(mockedPrisma.service.update).toHaveBeenCalledWith({
-      where: { id: "1" },
-      data: expect.objectContaining({
+    expect(json).toEqual(expect.objectContaining({ id: "1", title: "Updated" }));
+    expect(mockedRepository.updateService).toHaveBeenCalledWith(
+      "1",
+      expect.objectContaining({
         category: "legal",
         title: "Updated",
         ctaHref: null,
         image: null,
         rating: null,
-      }),
-    });
+      })
+    );
   });
 
   it("returns 500 when PATCH fails", async () => {
-    mockedPrisma.service.update.mockRejectedValue(new Error("db error"));
+    mockedRepository.updateService.mockRejectedValue(new Error("db error"));
 
     const request = new Request("http://localhost/api/admin/services/1", {
       method: "PATCH",
@@ -113,14 +118,14 @@ describe("Admin services API /api/admin/services/[id]", () => {
   });
 
   it("deletes service in DELETE", async () => {
-    mockedPrisma.service.delete.mockResolvedValue({ id: "1" });
+    mockedRepository.deleteService.mockResolvedValue({ ...mainService, id: "1" });
 
     const response = await DELETE({} as NextRequest, { params: Promise.resolve({ id: "1" }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
     expect(json).toEqual({ ok: true });
-    expect(mockedPrisma.service.delete).toHaveBeenCalledWith({ where: { id: "1" } });
+    expect(mockedRepository.deleteService).toHaveBeenCalledWith("1");
   });
 
   it("returns 404 in production mode for DELETE", async () => {

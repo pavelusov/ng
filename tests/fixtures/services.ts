@@ -1,4 +1,6 @@
-export const mainService = {
+import type { ServiceDto } from "@/entities/service";
+
+export const mainService: ServiceDto = {
   id: "svc-main-1",
   category: "main",
   title: "Межевание участка",
@@ -6,17 +8,17 @@ export const mainService = {
   ctaText: "Записаться",
   ctaHref: "#contacts",
   image: null,
+  stockBadge: null,
   description: "Описание",
   highlight: "участка",
   badge: "90% выгода",
-  stockBadge: null,
   paletteColor: "primary",
   icon: "map",
   rating: 4.7,
   reviewCount: 18,
 };
 
-export const legalService = {
+export const legalService: ServiceDto = {
   id: "svc-legal-1",
   category: "legal",
   title: "Судебное сопровождение",
@@ -24,10 +26,10 @@ export const legalService = {
   ctaText: "Оставить заявку",
   ctaHref: null,
   image: null,
+  stockBadge: "Осталось 3 слота",
   description: null,
   highlight: null,
   badge: null,
-  stockBadge: "Осталось 3 слота",
   paletteColor: null,
   icon: null,
   rating: null,

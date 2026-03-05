@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "../../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
+import { parseServiceCreateDto } from "@/entities/service/dto/service.dto";
 
 function ensureDevOnly() {
   if (process.env.NODE_ENV === "production") {
@@ -13,9 +14,7 @@ export async function GET(_request: NextRequest) {
   if (devOnly) return devOnly;
 
   try {
-    const services = await prisma.service.findMany({
-      orderBy: [{ category: "asc" }, { title: "asc" }],
-    });
+    const services = await serviceRepository.getServices();
     return NextResponse.json(services);
   } catch (error) {
     console.error("Error fetching services (admin):", error);
@@ -32,39 +31,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as Record<string, unknown>;
-
-    const category =
-      body.category === "main" || body.category === "legal" ? body.category : null;
-    const title = typeof body.title === "string" ? body.title.trim() : "";
-    const price = typeof body.price === "string" ? body.price.trim() : "";
-    const ctaText = typeof body.ctaText === "string" ? body.ctaText.trim() : "";
-
-    if (!category || !title || !price || !ctaText) {
+    const parsed = parseServiceCreateDto(body);
+    if (!parsed.data) {
       return NextResponse.json(
-        { error: "category, title, price, ctaText are required" },
+        { error: "Invalid payload", issues: parsed.issues },
         { status: 400 }
       );
     }
 
-    const service = await prisma.service.create({
-      data: {
-        category,
-        title,
-        price,
-        ctaText,
-        image: typeof body.image === "string" ? body.image : null,
-        stockBadge: typeof body.stockBadge === "string" ? body.stockBadge : null,
-        rating: typeof body.rating === "number" ? body.rating : null,
-        reviewCount: typeof body.reviewCount === "number" ? body.reviewCount : null,
-        ctaHref: typeof body.ctaHref === "string" ? body.ctaHref : null,
-        description: typeof body.description === "string" ? body.description : null,
-        highlight: typeof body.highlight === "string" ? body.highlight : null,
-        badge: typeof body.badge === "string" ? body.badge : null,
-        paletteColor: typeof body.paletteColor === "string" ? body.paletteColor : null,
-        icon: typeof body.icon === "string" ? body.icon : null,
-      },
-    });
-
+    const service = await serviceRepository.createService(parsed.data);
     return NextResponse.json(service, { status: 201 });
   } catch (error) {
     console.error("Error creating service (admin):", error);

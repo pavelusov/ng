@@ -3,23 +3,20 @@
 import type { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 
-jest.mock("../../../../lib/prisma", () => ({
+jest.mock("@/entities/service/api/service.repository", () => ({
   __esModule: true,
-  default: {
-    service: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
+  serviceRepository: {
+    getServices: jest.fn(),
+    createService: jest.fn(),
   },
 }));
 
-import prisma from "../../../../lib/prisma";
+import { serviceRepository } from "@/entities/service/api/service.repository";
+import { mainService } from "@/tests/fixtures/services";
 
-const mockedPrisma = prisma as unknown as {
-  service: {
-    findMany: jest.Mock;
-    create: jest.Mock;
-  };
+const mockedRepository = serviceRepository as unknown as {
+  getServices: jest.Mock;
+  createService: jest.Mock;
 };
 
 const originalNodeEnv = process.env.NODE_ENV;
@@ -42,21 +39,19 @@ describe("Admin services API /api/admin/services", () => {
 
     expect(response.status).toBe(404);
     expect(json).toEqual({ error: "Not found" });
-    expect(mockedPrisma.service.findMany).not.toHaveBeenCalled();
+    expect(mockedRepository.getServices).not.toHaveBeenCalled();
   });
 
-  it("returns ordered services for GET in non-production mode", async () => {
-    const rows = [{ id: "svc-1" }];
-    mockedPrisma.service.findMany.mockResolvedValue(rows);
+  it("returns services for GET in non-production mode", async () => {
+    const rows = [{ ...mainService, id: "svc-1" }];
+    mockedRepository.getServices.mockResolvedValue(rows);
 
     const response = await GET({} as NextRequest);
     const json = await response.json();
 
     expect(response.status).toBe(200);
     expect(json).toEqual(rows);
-    expect(mockedPrisma.service.findMany).toHaveBeenCalledWith({
-      orderBy: [{ category: "asc" }, { title: "asc" }],
-    });
+    expect(mockedRepository.getServices).toHaveBeenCalledTimes(1);
   });
 
   it("returns 404 in production mode for POST", async () => {
@@ -72,7 +67,7 @@ describe("Admin services API /api/admin/services", () => {
 
     expect(response.status).toBe(404);
     expect(json).toEqual({ error: "Not found" });
-    expect(mockedPrisma.service.create).not.toHaveBeenCalled();
+    expect(mockedRepository.createService).not.toHaveBeenCalled();
   });
 
   it("validates required POST fields", async () => {
@@ -86,12 +81,15 @@ describe("Admin services API /api/admin/services", () => {
     const json = await response.json();
 
     expect(response.status).toBe(400);
-    expect(json).toEqual({ error: "category, title, price, ctaText are required" });
-    expect(mockedPrisma.service.create).not.toHaveBeenCalled();
+    expect(json).toEqual(expect.objectContaining({ error: "Invalid payload" }));
+    expect(mockedRepository.createService).not.toHaveBeenCalled();
   });
 
   it("trims required values and creates service", async () => {
-    mockedPrisma.service.create.mockResolvedValue({ id: "new-service" });
+    mockedRepository.createService.mockResolvedValue({
+      ...mainService,
+      id: "new-service",
+    });
 
     const request = new Request("http://localhost/api/admin/services", {
       method: "POST",
@@ -110,21 +108,21 @@ describe("Admin services API /api/admin/services", () => {
     const json = await response.json();
 
     expect(response.status).toBe(201);
-    expect(json).toEqual({ id: "new-service" });
-    expect(mockedPrisma.service.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
+    expect(json).toEqual(expect.objectContaining({ id: "new-service" }));
+    expect(mockedRepository.createService).toHaveBeenCalledWith(
+      expect.objectContaining({
         category: "main",
         title: "Test title",
         price: "1000 ₽",
         ctaText: "Записаться",
         image: "/img.jpg",
         ctaHref: "/contacts",
-      }),
-    });
+      })
+    );
   });
 
-  it("returns 500 when prisma create throws", async () => {
-    mockedPrisma.service.create.mockRejectedValue(new Error("db error"));
+  it("returns 500 when repository create throws", async () => {
+    mockedRepository.createService.mockRejectedValue(new Error("db error"));
 
     const request = new Request("http://localhost/api/admin/services", {
       method: "POST",

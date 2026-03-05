@@ -28,13 +28,37 @@ describe("Users API /api/users", () => {
   });
 
   it("returns users list in GET", async () => {
-    mockedPrisma.user.findMany.mockResolvedValue([{ id: "u1", email: "a@a.com" }]);
+    const rows = [
+      {
+        id: "u1",
+        email: "a@a.com",
+        name: null,
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+      },
+    ];
+    mockedPrisma.user.findMany.mockResolvedValue(rows);
 
     const response = await GET({} as NextRequest);
     const json = await response.json();
 
     expect(response.status).toBe(200);
-    expect(json).toEqual([{ id: "u1", email: "a@a.com" }]);
+    expect(json).toEqual([
+      {
+        ...rows[0],
+        createdAt: rows[0].createdAt.toISOString(),
+        updatedAt: rows[0].updatedAt.toISOString(),
+      },
+    ]);
+    expect(mockedPrisma.user.findMany).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   });
 
   it("validates required email in POST", async () => {
@@ -53,7 +77,14 @@ describe("Users API /api/users", () => {
   });
 
   it("creates user in POST", async () => {
-    mockedPrisma.user.create.mockResolvedValue({ id: "u1", email: "mail@test.com" });
+    const created = {
+      id: "u1",
+      email: "mail@test.com",
+      name: "User",
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+    };
+    mockedPrisma.user.create.mockResolvedValue(created);
 
     const request = new Request("http://localhost/api/users", {
       method: "POST",
@@ -65,11 +96,22 @@ describe("Users API /api/users", () => {
     const json = await response.json();
 
     expect(response.status).toBe(201);
-    expect(json).toEqual({ id: "u1", email: "mail@test.com" });
+    expect(json).toEqual({
+      ...created,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    });
     expect(mockedPrisma.user.create).toHaveBeenCalledWith({
       data: {
         email: "mail@test.com",
         name: "User",
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   });

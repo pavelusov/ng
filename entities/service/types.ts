@@ -2,18 +2,18 @@ export type ServiceCardItem = {
   id: string;
   title: string;
   /** URL or path to image; if not set, placeholder is shown */
-  image?: string;
+  image?: string | null;
   /** Badge overlapping image bottom, e.g. "Осталось 8 шт" */
-  stockBadge?: string;
+  stockBadge?: string | null;
   /** Price or cost label, e.g. "1004 ₽" or "от 15 000 ₽" */
   price: string;
   /** 1–5 */
-  rating?: number;
+  rating?: number | null;
   /** Review count for label "N отзыв(ов)" */
-  reviewCount?: number;
+  reviewCount?: number | null;
   /** CTA button text, e.g. "3 марта" or "Записаться" */
   ctaText: string;
-  ctaHref?: string;
+  ctaHref?: string | null;
 };
 
 export type ServicePaletteColor =
@@ -31,11 +31,11 @@ export type ServiceIconKey = "map" | "electric" | "architecture";
 export type ServiceRecord = ServiceCardItem & {
   category: "main" | "legal";
   /** For main services: full description (about page) */
-  description?: string;
+  description?: string | null;
   /** Substring to highlight in description */
-  highlight?: string;
+  highlight?: string | null;
   /** For main: badge text (e.g. "90% выгода") — may duplicate stockBadge */
-  badge?: string;
-  paletteColor?: ServicePaletteColor;
-  icon?: ServiceIconKey;
+  badge?: string | null;
+  paletteColor?: ServicePaletteColor | null;
+  icon?: ServiceIconKey | null;
 };
