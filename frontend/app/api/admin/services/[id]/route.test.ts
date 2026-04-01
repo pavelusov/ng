@@ -1,0 +1,165 @@
+/** @jest-environment node */
+
+import type { NextRequest } from "next/server";
+import { DELETE, PATCH } from "./route";
+
+jest.mock("@/lib/auth", () => ({
+  __esModule: true,
+  getServerAuthSession: jest.fn(),
+}));
+
+jest.mock("@/lib/backend-api", () => ({
+  __esModule: true,
+  fetchBackendAsUser: jest.fn(),
+}));
+
+import { fetchBackendAsUser } from "@/lib/backend-api";
+import { getServerAuthSession } from "@/lib/auth";
+import { mainService } from "@/tests/fixtures/services";
+
+const mockedFetchBackendAsUser = fetchBackendAsUser as jest.Mock;
+const mockedGetServerAuthSession = getServerAuthSession as jest.Mock;
+
+function setNodeEnv(value: "development" | "production" | "test") {
+  process.env = { ...process.env, NODE_ENV: value } as NodeJS.ProcessEnv;
+}
+
+const originalNodeEnv = process.env.NODE_ENV;
+
+describe("Admin services API /api/admin/services/[id]", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setNodeEnv("test");
+    mockedGetServerAuthSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+      },
+    });
+  });
+
+  afterAll(() => {
+    setNodeEnv((originalNodeEnv as "development" | "production" | "test" | undefined) ?? "test");
+  });
+
+  it("returns 404 in production mode for PATCH", async () => {
+    setNodeEnv("production");
+    const request = new Request("http://localhost/api/admin/services/1", {
+      method: "PATCH",
+      body: JSON.stringify({ title: "New title" }),
+    }) as unknown as NextRequest;
+
+    const response = (await PATCH(request, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(json).toEqual({ error: "Not found" });
+    expect(mockedFetchBackendAsUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when session is missing for PATCH", async () => {
+    mockedGetServerAuthSession.mockResolvedValue(null);
+
+    const request = new Request("http://localhost/api/admin/services/1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Updated" }),
+    }) as unknown as NextRequest;
+
+    const response = (await PATCH(request, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(json).toEqual({ error: "Unauthorized" });
+  });
+
+  it("proxies PATCH payload to backend", async () => {
+    mockedFetchBackendAsUser.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ...mainService,
+          id: "1",
+          title: "Updated",
+          category: "legal",
+          ctaHref: null,
+          image: null,
+          rating: null,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+    );
+
+    const payload = {
+      category: "legal",
+      title: "Updated",
+      ctaHref: null,
+      image: null,
+      rating: null,
+    };
+
+    const request = new Request("http://localhost/api/admin/services/1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }) as unknown as NextRequest;
+
+    const response = (await PATCH(request, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json).toEqual(expect.objectContaining({ id: "1", title: "Updated" }));
+    expect(mockedFetchBackendAsUser).toHaveBeenCalledWith("/admin/services/1", "user-1", {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  });
+
+  it("returns 500 when PATCH fails", async () => {
+    mockedFetchBackendAsUser.mockRejectedValue(new Error("backend error"));
+
+    const request = new Request("http://localhost/api/admin/services/1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Updated" }),
+    }) as unknown as NextRequest;
+
+    const response = (await PATCH(request, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(json).toEqual({ error: "Failed to update service" });
+  });
+
+  it("deletes service in DELETE", async () => {
+    mockedFetchBackendAsUser.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    const response = (await DELETE({} as NextRequest, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json).toEqual({ ok: true });
+    expect(mockedFetchBackendAsUser).toHaveBeenCalledWith("/admin/services/1", "user-1", {
+      method: "DELETE",
+    });
+  });
+
+  it("returns 404 in production mode for DELETE", async () => {
+    setNodeEnv("production");
+
+    const response = (await DELETE({} as NextRequest, { params: Promise.resolve({ id: "1" }) }))!;
+    const json = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(json).toEqual({ error: "Not found" });
+  });
+});
