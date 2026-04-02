@@ -1,17 +1,60 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { Box, Button, Paper, Stack, TextField, Typography } from "@mui/material";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { SERVICE_LEAD_INTENT } from "@/entities/service-lead";
 
 export default function SignInPage() {
+  return (
+    <Suspense fallback={<SignInPageFallback />}>
+      <SignInPageContent />
+    </Suspense>
+  );
+}
+
+function SignInPageFallback() {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: 2,
+        backgroundImage: "url('/hero-bg-house_static_day.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <Paper
+        elevation={10}
+        sx={{
+          width: "100%",
+          maxWidth: 420,
+          p: 4,
+          backdropFilter: "blur(3px)",
+          backgroundColor: "background.paper",
+        }}
+      />
+    </Box>
+  );
+}
+
+function SignInPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const intent = searchParams.get("intent");
+  const returnTo = searchParams.get("returnTo");
+  const signUpHref = searchParams.toString() ? `/signup?${searchParams.toString()}` : "/signup";
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,7 +73,12 @@ export default function SignInPage() {
         return;
       }
 
-      router.push("/");
+      const nextPath =
+        intent === SERVICE_LEAD_INTENT && returnTo
+          ? returnTo
+          : "/";
+
+      router.push(nextPath);
       router.refresh();
     } catch {
       setError("Не удалось войти. Попробуйте ещё раз.");
@@ -98,7 +146,7 @@ export default function SignInPage() {
 
           <Typography variant="body2" color="text.secondary">
             Нет аккаунта?{" "}
-            <Link href="/signup" style={{ color: "inherit", fontWeight: 600 }}>
+            <Link href={signUpHref} style={{ color: "inherit", fontWeight: 600 }}>
               Регистрация
             </Link>
           </Typography>

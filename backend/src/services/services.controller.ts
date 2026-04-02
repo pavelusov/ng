@@ -39,6 +39,20 @@ export class ServicesController {
     );
   }
 
+  @Get('admin/services/:id')
+  async getAdminServiceById(@Req() request: Request, @Param('id') id: string) {
+    const context = await this.servicesService.getManagementContext(request, 'read');
+    const service = await this.servicesService.getServiceById(id, {
+      providerId: context.isPlatformAdmin ? undefined : context.providerId,
+    });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    return service;
+  }
+
   @Post('admin/services')
   async createService(@Req() request: Request, @Body() body: ServiceCreateDto) {
     const context = await this.servicesService.getManagementContext(request, 'create');
@@ -64,6 +78,8 @@ export class ServicesController {
     return this.servicesService.updateService(id, body, {
       providerId: context.isPlatformAdmin ? undefined : context.providerId,
       actorUserId: context.actorUserId,
+      canPublish: context.canPublish,
+      canArchive: context.canArchive,
     });
   }
 

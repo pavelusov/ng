@@ -28,11 +28,31 @@ export type AuthorizedUser = {
 };
 
 export type ServiceManagementAction = 'read' | 'create' | 'update' | 'delete';
+export type ServiceLeadManagementAction = 'read' | 'update';
+export type OrderManagementAction = 'read';
 
 export type ServiceManagementContext = {
   actorUserId: string;
   providerId: string | null;
   isPlatformAdmin: boolean;
+  providerRole: ProviderMemberRole | null;
+  canPublish: boolean;
+  canArchive: boolean;
+  canDelete: boolean;
+};
+
+export type ServiceLeadManagementContext = {
+  actorUserId: string;
+  providerId: string | null;
+  isPlatformAdmin: boolean;
+  providerRole: ProviderMemberRole | null;
+};
+
+export type OrderManagementContext = {
+  actorUserId: string;
+  providerId: string | null;
+  isPlatformAdmin: boolean;
+  providerRole: ProviderMemberRole | null;
 };
 
 export function getActiveMembership(user: Pick<AuthorizedUser, 'activeProviderId' | 'memberships'> | null) {
@@ -57,6 +77,10 @@ export function canManageServices(
       actorUserId: user.id,
       providerId: user.activeProviderId,
       isPlatformAdmin: true,
+      providerRole: null,
+      canPublish: true,
+      canArchive: true,
+      canDelete: true,
     };
   }
 
@@ -68,6 +92,10 @@ export function canManageServices(
       actorUserId: user.id,
       providerId: membership.providerId,
       isPlatformAdmin: false,
+      providerRole: membership.role,
+      canPublish: true,
+      canArchive: membership.role === 'OWNER',
+      canDelete: membership.role === 'OWNER',
     };
   }
 
@@ -76,6 +104,10 @@ export function canManageServices(
       actorUserId: user.id,
       providerId: membership.providerId,
       isPlatformAdmin: false,
+      providerRole: membership.role,
+      canPublish: true,
+      canArchive: membership.role === 'OWNER',
+      canDelete: membership.role === 'OWNER',
     };
   }
 
@@ -84,6 +116,69 @@ export function canManageServices(
       actorUserId: user.id,
       providerId: membership.providerId,
       isPlatformAdmin: false,
+      providerRole: membership.role,
+      canPublish: true,
+      canArchive: true,
+      canDelete: true,
+    };
+  }
+
+  return null;
+}
+
+export function canManageServiceLeads(
+  user: AuthorizedUser,
+  action: ServiceLeadManagementAction,
+): ServiceLeadManagementContext | null {
+  if (user.systemRole === 'PLATFORM_ADMIN') {
+    return {
+      actorUserId: user.id,
+      providerId: user.activeProviderId,
+      isPlatformAdmin: true,
+      providerRole: null,
+    };
+  }
+
+  const membership = getActiveMembership(user);
+  if (!membership) return null;
+
+  if (
+    (action === 'read' || action === 'update') &&
+    (membership.role === 'OWNER' || membership.role === 'MANAGER')
+  ) {
+    return {
+      actorUserId: user.id,
+      providerId: membership.providerId,
+      isPlatformAdmin: false,
+      providerRole: membership.role,
+    };
+  }
+
+  return null;
+}
+
+export function canManageOrders(
+  user: AuthorizedUser,
+  action: OrderManagementAction,
+): OrderManagementContext | null {
+  if (user.systemRole === 'PLATFORM_ADMIN') {
+    return {
+      actorUserId: user.id,
+      providerId: user.activeProviderId,
+      isPlatformAdmin: true,
+      providerRole: null,
+    };
+  }
+
+  const membership = getActiveMembership(user);
+  if (!membership) return null;
+
+  if (action === 'read' && (membership.role === 'OWNER' || membership.role === 'MANAGER')) {
+    return {
+      actorUserId: user.id,
+      providerId: membership.providerId,
+      isPlatformAdmin: false,
+      providerRole: membership.role,
     };
   }
 

@@ -1,0 +1,16 @@
+---
+description: Use the business logic spec as the source of truth for domain changes
+alwaysApply: true
+---
+
+# Business logic source of truth
+
+- Before changing domain logic, roles, flows, permissions, or provider-scoped resources, read `docs/business-logic.md`.
+- For access-control details, also read `frontend/docs/roles-and-permissions.md`.
+- Treat `docs/business-logic.md` as the primary product source of truth unless the user explicitly overrides it.
+- Do not invent new roles, statuses, or business entities unless they are added to the spec first.
+- Any provider-owned resource must be scoped by `providerId`.
+- Do not trust client-supplied `providerId` for protected create/update/delete flows.
+- Do not rely on UI-only permission checks; enforce access on the server.
+- Do not treat placeholder UI sections as fully implemented product features.
+- If implementation and spec diverge, prefer updating the spec or asking the user before expanding the domain model.

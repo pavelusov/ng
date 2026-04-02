@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { InternalAuthService } from '../auth/internal-auth.service';
 import {
+  type ServiceStatus,
   type ServiceCreateDto,
   type ServiceDbRow,
   type ServiceDto,
@@ -21,6 +22,7 @@ import type { ServiceManagementAction } from '../auth/authorization';
 const serviceSelect = {
   id: true,
   category: true,
+  status: true,
   title: true,
   image: true,
   stockBadge: true,
@@ -39,6 +41,8 @@ const serviceSelect = {
 type ServiceScope = {
   providerId?: string | null;
   actorUserId?: string;
+  canPublish?: boolean;
+  canArchive?: boolean;
 };
 
 @Injectable()
@@ -71,7 +75,9 @@ export class ServicesService {
 
   async getServices(scope?: Pick<ServiceScope, 'providerId'>): Promise<ServiceDto[]> {
     const rows: ServiceDbRow[] = await this.prisma.service.findMany({
-      where: scope?.providerId ? { providerId: scope.providerId } : undefined,
+      where: scope?.providerId
+        ? { providerId: scope.providerId }
+        : { status: 'PUBLISHED' },
       select: serviceSelect,
       orderBy: [{ category: 'asc' }, { title: 'asc' }],
     });
@@ -85,8 +91,8 @@ export class ServicesService {
           where: { id, providerId: scope.providerId },
           select: serviceSelect,
         })
-      : await this.prisma.service.findUnique({
-          where: { id },
+      : await this.prisma.service.findFirst({
+          where: { id, status: 'PUBLISHED' },
           select: serviceSelect,
         });
 
@@ -97,9 +103,12 @@ export class ServicesService {
     service: ServiceCreateDto,
     scope: { providerId: string; actorUserId?: string },
   ): Promise<ServiceDto> {
+    const nextStatus: ServiceStatus = service.status ?? 'DRAFT';
     const row = await this.prisma.service.create({
       data: {
         ...service,
+        status: nextStatus,
+        publishedAt: nextStatus === 'PUBLISHED' ? new Date() : null,
         providerId: scope.providerId,
         createdByUserId: scope.actorUserId,
         updatedByUserId: scope.actorUserId,
@@ -112,11 +121,26 @@ export class ServicesService {
 
   async updateService(id: string, service: ServicePatchDto, scope?: ServiceScope): Promise<ServiceDto> {
     const serviceId = await this.resolveScopedServiceId(id, scope?.providerId);
+    const nextStatus = service.status;
+
+    if ((nextStatus === 'PUBLISHED' || nextStatus === 'DRAFT') && scope?.canPublish === false) {
+      throw new ForbiddenException('Publishing services is not allowed');
+    }
+
+    if (nextStatus === 'ARCHIVED' && scope?.canArchive === false) {
+      throw new ForbiddenException('Archiving services is not allowed');
+    }
 
     const row = await this.prisma.service.update({
       where: { id: serviceId },
       data: {
         ...service,
+        publishedAt:
+          nextStatus === 'PUBLISHED'
+            ? new Date()
+            : nextStatus === 'DRAFT' || nextStatus === 'ARCHIVED'
+              ? null
+              : undefined,
         updatedByUserId: scope?.actorUserId,
       },
       select: serviceSelect,

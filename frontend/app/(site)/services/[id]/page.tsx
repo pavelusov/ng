@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
-import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
+import { Box, Container, Paper, Stack, Typography } from "@mui/material";
 import type { ServiceDto } from "@/entities/service";
 import { BackendApiError, fetchBackendJson } from "@/lib/backend-api";
+import { getServerAuthSession } from "@/lib/auth";
+import { PublicServiceLeadForm } from "@/widgets/public-service/ui/PublicServiceLeadForm";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -32,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServicePage({ params }: Props) {
   const { id } = await params;
+  const session = await getServerAuthSession();
   let service: ServiceDto | null = null;
 
   try {
@@ -154,21 +156,14 @@ export default async function ServicePage({ params }: Props) {
                   >
                     {service.price}
                   </Typography>
-                  <Link href={service.ctaHref ?? "#contacts"} style={{ textDecoration: "none" }}>
-                    <Button
-                      component="span"
-                      variant="contained"
-                      size="large"
-                      sx={{
-                        fontWeight: 700,
-                        textTransform: "none",
-                        px: 3,
-                        py: 1.25,
-                      }}
-                    >
-                      {service.ctaText}
-                    </Button>
-                  </Link>
+                  <PublicServiceLeadForm
+                    serviceId={service.id}
+                    ctaText={service.ctaText}
+                    ctaHref={service.ctaHref}
+                    initialCustomerName={session?.user?.name ?? null}
+                    initialCustomerEmail={session?.user?.email ?? null}
+                    isAuthenticated={Boolean(session?.user?.id)}
+                  />
                 </Stack>
               </Paper>
             </Box>

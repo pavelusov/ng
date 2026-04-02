@@ -14,6 +14,7 @@ import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
 import { signOut } from "next-auth/react";
 import { useAppSelector } from "@/core/store/hooks";
 
@@ -32,6 +33,7 @@ export const ProfileMenu = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const isAuthenticated = status === "authenticated";
+  const hasProfessionalProfile = (user?.memberships?.length ?? 0) > 0;
   const initials = getInitials(user?.name) || user?.email?.charAt(0)?.toUpperCase() || "U";
 
   const handleMouseEnter = (event: MouseEvent<HTMLElement>) => {
@@ -64,6 +66,11 @@ export const ProfileMenu = () => {
   const handleSignUp = () => {
     handleClose();
     router.push("/signup");
+  };
+
+  const handleProDashboard = () => {
+    handleClose();
+    router.push("/pro");
   };
 
   return (
@@ -191,6 +198,12 @@ export const ProfileMenu = () => {
               <PersonOutlineRoundedIcon sx={{ mr: 1.5, fontSize: 20 }} />
               Мой профиль
             </MenuItem>
+            {hasProfessionalProfile ? (
+              <MenuItem onClick={handleProDashboard} sx={{ py: 1.5 }}>
+                <WorkOutlineOutlinedIcon sx={{ mr: 1.5, fontSize: 20 }} />
+                Кабинет профессионала
+              </MenuItem>
+            ) : null}
             <MenuItem onClick={handleSignOut} sx={{ py: 1.5, color: "error.main" }}>
               <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} />
               Выйти

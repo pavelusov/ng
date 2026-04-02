@@ -27,13 +27,21 @@ jest.mock("@/lib/backend-api", () => {
   };
 });
 
+jest.mock("@/lib/auth", () => ({
+  __esModule: true,
+  getServerAuthSession: jest.fn(),
+}));
+
 import { BackendApiError, fetchBackendJson } from "@/lib/backend-api";
+import { getServerAuthSession } from "@/lib/auth";
 
 const mockedFetchBackendJson = fetchBackendJson as jest.Mock;
+const mockedGetServerAuthSession = getServerAuthSession as jest.Mock;
 
 describe("Service details page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedGetServerAuthSession.mockResolvedValue(null);
   });
 
   it("returns fallback metadata when service is missing", async () => {

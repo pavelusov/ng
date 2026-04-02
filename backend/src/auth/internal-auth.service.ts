@@ -67,6 +67,15 @@ export class InternalAuthService {
     return this.verifyToken(token).userId;
   }
 
+  getOptionalUserIdFromRequest(request: Request) {
+    const token = request.header('x-internal-auth');
+    if (!token) {
+      return null;
+    }
+
+    return this.verifyToken(token).userId;
+  }
+
   static createTokenForUserId(userId: string, secret: string) {
     const payload = toBase64Url(JSON.stringify({ userId }));
     const signature = createHmac('sha256', secret).update(payload).digest('hex');

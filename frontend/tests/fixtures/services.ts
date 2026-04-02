@@ -3,6 +3,7 @@ import type { ServiceDto } from "@/entities/service";
 export const mainService: ServiceDto = {
   id: "svc-main-1",
   category: "main",
+  status: "PUBLISHED",
   title: "Межевание участка",
   price: "от 15 000 ₽",
   ctaText: "Записаться",
@@ -21,6 +22,7 @@ export const mainService: ServiceDto = {
 export const legalService: ServiceDto = {
   id: "svc-legal-1",
   category: "legal",
+  status: "DRAFT",
   title: "Судебное сопровождение",
   price: "от 30 000 ₽",
   ctaText: "Оставить заявку",

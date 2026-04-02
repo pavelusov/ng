@@ -12,7 +12,14 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/core/store/hooks";
 import type { ServiceCardItem } from "../types";
+import {
+  SERVICE_LEADS_PROFILE_RESUME_URL,
+  buildServiceLeadAuthHref,
+  savePendingServiceLeadDraft,
+} from "@/entities/service-lead";
 
 type Props = {
   item: ServiceCardItem;
@@ -25,6 +32,9 @@ function formatReviews(count: number): string {
 }
 
 export function ServiceCard({ item }: Props) {
+  const router = useRouter();
+  const { status } = useAppSelector((state) => state.auth);
+
   return (
     <Paper
       component={Link}
@@ -187,6 +197,21 @@ export function ServiceCard({ item }: Props) {
           fullWidth
           component="span"
           startIcon={<ShoppingBagOutlinedIcon />}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            savePendingServiceLeadDraft({
+              serviceId: item.id,
+            });
+
+            if (status === "authenticated") {
+              router.push(SERVICE_LEADS_PROFILE_RESUME_URL);
+              return;
+            }
+
+            router.push(buildServiceLeadAuthHref("signup", item.id));
+          }}
           sx={{
             py: 1.25,
             borderRadius: 2,

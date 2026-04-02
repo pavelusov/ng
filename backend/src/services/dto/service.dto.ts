@@ -11,9 +11,16 @@ import { Expose, Transform, instanceToPlain, plainToInstance } from 'class-trans
 import type { ServiceIconKey, ServicePaletteColor } from '../service.types';
 
 export type ServiceCategory = 'main' | 'legal';
+export type ServiceStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
 function normalizeCategory(value: unknown): ServiceCategory {
   return value === 'legal' ? 'legal' : 'main';
+}
+
+function normalizeStatus(value: unknown): ServiceStatus {
+  if (value === 'PUBLISHED') return 'PUBLISHED';
+  if (value === 'ARCHIVED') return 'ARCHIVED';
+  return 'DRAFT';
 }
 
 const PALETTE_COLORS: readonly ServicePaletteColor[] = [
@@ -52,6 +59,11 @@ export class ServiceDto {
   @Transform(({ value }) => normalizeCategory(value), { toClassOnly: true })
   @IsEnum(['main', 'legal'])
   category!: ServiceCategory;
+
+  @Expose()
+  @Transform(({ value }) => normalizeStatus(value), { toClassOnly: true })
+  @IsEnum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
+  status!: ServiceStatus;
 
   @Expose()
   @IsString()
@@ -121,6 +133,7 @@ export class ServiceDto {
 export type ServiceDbRow = {
   id: string;
   category: string;
+  status: ServiceStatus;
   title: string;
   image: string | null;
   stockBadge: string | null;
@@ -149,6 +162,12 @@ export class ServiceCreateDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value), { toClassOnly: true })
   @IsEnum(['main', 'legal'])
   category!: ServiceCategory;
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value), { toClassOnly: true })
+  @IsEnum(['DRAFT', 'PUBLISHED'])
+  status?: Extract<ServiceStatus, 'DRAFT' | 'PUBLISHED'>;
 
   @Expose()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value), { toClassOnly: true })
@@ -235,6 +254,12 @@ export class ServicePatchDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value), { toClassOnly: true })
   @IsEnum(['main', 'legal'])
   category?: ServiceCategory;
+
+  @Expose()
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value), { toClassOnly: true })
+  @IsEnum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
+  status?: ServiceStatus;
 
   @Expose()
   @IsOptional()

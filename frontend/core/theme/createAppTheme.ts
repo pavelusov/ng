@@ -205,14 +205,20 @@ export function createAppTheme(mode: PaletteMode) {
       },
       MuiChip: {
         styleOverrides: {
-          root: ({ theme }) => ({
+          root: ({ theme, ownerState }) => ({
             borderRadius: 999,
             fontWeight: 700,
-            border: `1px solid ${theme.palette.divider}`,
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? alpha("#FFFFFF", 0.06)
-                : alpha(theme.palette.primary.main, 0.06),
+            ...(ownerState.variant === "filled"
+              ? {
+                  border: "none",
+                }
+              : {
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor:
+                    theme.palette.mode === "dark"
+                      ? alpha("#FFFFFF", 0.06)
+                      : alpha(theme.palette.primary.main, 0.06),
+                }),
           }),
         },
       },
@@ -250,9 +256,11 @@ export function createAppTheme(mode: PaletteMode) {
       },
       MuiPaper: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
+            // backgroundColor: theme.palette.mode === "dark" ? "#0F120E" : "#F2E8DE",
+            backgroundColor: theme.palette.mode === "dark" ? "#0F120E" : "#FFFFFF",
             backgroundImage: "none",
-          },
+          }),
           outlined: ({ theme }) => ({
             borderColor: alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.12 : 0.10),
           }),

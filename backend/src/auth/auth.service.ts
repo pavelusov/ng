@@ -9,8 +9,12 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   type AuthMembership,
+  canManageOrders,
   type AuthorizedUser,
+  type OrderManagementAction,
+  canManageServiceLeads,
   canManageServices,
+  type ServiceLeadManagementAction,
   type ServiceManagementAction,
 } from './authorization';
 
@@ -172,6 +176,40 @@ export class AuthService {
     }
 
     const context = canManageServices(user, action);
+    if (!context) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    return context;
+  }
+
+  async getServiceLeadManagementContext(
+    userId: string,
+    action: ServiceLeadManagementAction,
+  ) {
+    const user = await this.getUserAuthContext(userId);
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const context = canManageServiceLeads(user, action);
+    if (!context) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    return context;
+  }
+
+  async getOrderManagementContext(
+    userId: string,
+    action: OrderManagementAction,
+  ) {
+    const user = await this.getUserAuthContext(userId);
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const context = canManageOrders(user, action);
     if (!context) {
       throw new ForbiddenException('Forbidden');
     }

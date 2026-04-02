@@ -27,6 +27,25 @@ enum ProviderMemberStatus {
   SUSPENDED
 }
 
+enum ServiceStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ServiceLeadStatus {
+  NEW
+  IN_PROGRESS
+  CONVERTED_TO_ORDER
+  CLOSED
+}
+
+enum OrderStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id               String           @id @default(uuid()) @db.Uuid
   email            String           @unique
@@ -42,6 +61,8 @@ model User {
   ownedProviders   Provider[]       @relation("ProviderOwner")
   createdServices  Service[]        @relation("ServiceCreatedBy")
   updatedServices  Service[]        @relation("ServiceUpdatedBy")
+  serviceLeads     ServiceLead[]    @relation("ServiceLeadCustomer")
+  customerOrders   Order[]          @relation("OrderCustomer")
   activeProvider   Provider?        @relation("ActiveProvider", fields: [activeProviderId], references: [id], onDelete: SetNull)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -96,6 +117,8 @@ model Provider {
   ownerUser   User?          @relation("ProviderOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
   members     ProviderMember[]
   services    Service[]
+  serviceLeads ServiceLead[]
+  orders      Order[]
   activeUsers User[]         @relation("ActiveProvider")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -123,6 +146,7 @@ model ProviderMember {
 model Service {
   id              String    @id @default(uuid()) @db.Uuid
   category        String
+  status          ServiceStatus @default(DRAFT)
   title           String
   image           String?
   stockBadge      String?
@@ -139,12 +163,58 @@ model Service {
   providerId      String    @db.Uuid
   createdByUserId String?   @db.Uuid
   updatedByUserId String?   @db.Uuid
+  publishedAt     DateTime?
   provider        Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
   createdByUser   User?     @relation("ServiceCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUser   User?     @relation("ServiceUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  leads           ServiceLead[]
+  orders          Order[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([category])
   @@index([providerId])
+  @@index([status])
+  @@index([providerId, status])
+}
+
+model ServiceLead {
+  id             String            @id @default(uuid()) @db.Uuid
+  serviceId      String            @db.Uuid
+  providerId     String            @db.Uuid
+  customerUserId String?           @db.Uuid
+  customerName   String?
+  customerEmail  String?
+  customerPhone  String?
+  message        String?
+  status         ServiceLeadStatus @default(NEW)
+  service        Service           @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  provider       Provider          @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customerUser   User?             @relation("ServiceLeadCustomer", fields: [customerUserId], references: [id], onDelete: SetNull)
+  order          Order?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([serviceId, status])
+  @@index([providerId, status])
+  @@index([customerUserId])
+}
+
+model Order {
+  id             String      @id @default(uuid()) @db.Uuid
+  serviceLeadId  String      @unique @db.Uuid
+  serviceId      String      @db.Uuid
+  providerId     String      @db.Uuid
+  customerUserId String      @db.Uuid
+  status         OrderStatus @default(ACTIVE)
+  serviceLead    ServiceLead @relation(fields: [serviceLeadId], references: [id], onDelete: Cascade)
+  service        Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  provider       Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customerUser   User        @relation("OrderCustomer", fields: [customerUserId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([providerId, status])
+  @@index([customerUserId, status])
+  @@index([serviceId])
 }
