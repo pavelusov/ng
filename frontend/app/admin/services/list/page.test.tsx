@@ -36,18 +36,13 @@ describe("Admin services list page", () => {
     mockedGetServerAuthSession.mockResolvedValue({
       user: {
         id: "user-1",
+        systemRole: "PLATFORM_ADMIN",
       },
     });
   });
 
   afterAll(() => {
     setNodeEnv((originalNodeEnv as "development" | "production" | "test" | undefined) ?? "test");
-  });
-
-  it("calls notFound in production", async () => {
-    setNodeEnv("production");
-    await expect(ServicesAdminListPage()).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(notFoundMock).toHaveBeenCalled();
   });
 
   it("loads services with expected ordering", async () => {

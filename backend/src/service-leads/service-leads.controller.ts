@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -38,19 +39,28 @@ export class ServiceLeadsController {
     return this.serviceLeadsService.getCustomerServiceLeads(actorUserId);
   }
 
-  @Get('admin/service-leads')
-  async getAdminServiceLeads(@Req() request: Request) {
+  @Get('service-leads/mine/:id')
+  async getCustomerServiceLeadById(@Req() request: Request, @Param('id') id: string) {
+    const actorUserId = this.serviceLeadsService.getRequiredActorUserId(request);
+    return this.serviceLeadsService.getCustomerServiceLeadById(actorUserId, id);
+  }
+
+  @Get('pro/service-leads')
+  async getProServiceLeads(@Req() request: Request) {
     const context = await this.serviceLeadsService.getManagementContext(request, 'read');
+    if (context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
     return this.serviceLeadsService.getServiceLeads(
-      context.isPlatformAdmin ? undefined : { providerId: context.providerId },
+      { providerId: context.providerId },
     );
   }
 
-  @Get('admin/service-leads/:id')
-  async getAdminServiceLeadById(@Req() request: Request, @Param('id') id: string) {
+  @Get('pro/service-leads/:id')
+  async getProServiceLeadById(@Req() request: Request, @Param('id') id: string) {
     const context = await this.serviceLeadsService.getManagementContext(request, 'read');
     const lead = await this.serviceLeadsService.getServiceLeadById(id, {
-      providerId: context.isPlatformAdmin ? undefined : context.providerId,
+      providerId: context.providerId,
     });
 
     if (!lead) {
@@ -60,13 +70,16 @@ export class ServiceLeadsController {
     return lead;
   }
 
-  @Patch('admin/service-leads/:id')
-  async updateAdminServiceLead(
+  @Patch('pro/service-leads/:id')
+  async updateProServiceLead(
     @Req() request: Request,
     @Param('id') id: string,
     @Body() body: unknown,
   ) {
     const context = await this.serviceLeadsService.getManagementContext(request, 'update');
+    if (context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
     const { data, issues } = this.serviceLeadsService.parsePatchDto(body);
 
     if (!data) {
@@ -74,7 +87,46 @@ export class ServiceLeadsController {
     }
 
     return this.serviceLeadsService.updateServiceLead(id, data, {
-      providerId: context.isPlatformAdmin ? undefined : context.providerId,
+      providerId: context.providerId,
     });
+  }
+
+  @Get('admin/service-leads')
+  async getAdminServiceLeads(@Req() request: Request) {
+    const context = await this.serviceLeadsService.getManagementContext(request, 'read');
+    if (!context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    return this.serviceLeadsService.getServiceLeads();
+  }
+
+  @Get('admin/service-leads/:id')
+  async getAdminServiceLeadById(@Req() request: Request, @Param('id') id: string) {
+    const context = await this.serviceLeadsService.getManagementContext(request, 'read');
+    if (!context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    const lead = await this.serviceLeadsService.getServiceLeadById(id);
+
+    if (!lead) {
+      throw new NotFoundException('Service lead not found');
+    }
+
+    return lead;
+  }
+
+  @Patch('admin/service-leads/:id')
+  async updateAdminServiceLead(@Req() request: Request, @Param('id') id: string, @Body() body: unknown) {
+    const context = await this.serviceLeadsService.getManagementContext(request, 'update');
+    if (!context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    const { data, issues } = this.serviceLeadsService.parsePatchDto(body);
+
+    if (!data) {
+      throw new UnprocessableEntityException({ error: 'Validation failed', issues });
+    }
+
+    return this.serviceLeadsService.updateServiceLead(id, data);
   }
 }

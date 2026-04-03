@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import {
   Box,
   Container,
@@ -11,8 +10,6 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 
 export default async function ServicesAdminPage() {
-  if (process.env.NODE_ENV === "production") notFound();
-
   return (
     <main>
       <Container sx={{ py: { xs: 4, md: 6 } }}>

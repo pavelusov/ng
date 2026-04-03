@@ -93,6 +93,23 @@
 
 Важно: права должны проверяться **на сервере** (route handlers / server components), не только в UI.
 
+## Соглашение: UI `/admin/*` и кабинет провайдера `/pro/*`
+
+**Продуктовое правило:**
+
+- Маршруты приложения **`/admin/*`** (страницы под `app/admin/...`) относятся к **платформенному администрированию** и в целевой модели предназначены только для пользователей с **`User.systemRole = PLATFORM_ADMIN`**.
+- Кабинет поставщика услуг (профессионала) — под **`/pro/*`** и через BFF **`app/api/pro/...`**, с проверкой membership и активного `providerId`.
+
+Так мы не смешиваем операции платформы с повседневной работой провайдера.
+
+**Проверка в коде:** `app/admin/layout.tsx` редиректит неавторизованных на `/signin`, для `systemRole !== PLATFORM_ADMIN` вызывает `forbidden()`. BFF `app/api/admin/services/...` проходит через `requirePlatformAdminApi()` в `core/auth/server-authorization.ts` (ответ **403** для провайдера/заказчика).
+
+### Префикс `admin` на backend (Nest)
+
+На бэкенде HTTP-пути вида **`/admin/services`** (см. `backend/src/services/services.controller.ts`) используются для **управления услугами в scope активного provider**, с проверками `getServiceManagementContext` / фильтрацией по `providerId`. Это **не** означает «доступен только PLATFORM_ADMIN»: обычный `OWNER`/`MANAGER` с активным membership тоже ходит сюда через BFF.
+
+Иными словами, **строка пути на API не совпадает с продуктовой зоной UI `/admin/*`**. Совпадение слова `admin` в URL — историческое именование. Пока пути не переименованы, при чтении кода нужно смотреть на guard и scope, а не на префикс. Вынести provider-операции в нейтральные пути (например без сегмента `admin`) — возможный будущий рефакторинг API, если захотим убрать двусмысленность.
+
 ## Как роли попадают в session/JWT
 
 Файлы:
@@ -159,10 +176,10 @@
 
 ## Как защищены сервисы сейчас (пример)
 
-Маршруты админки услуг:
+BFF для услуг (оба проксируют на backend `.../admin/services/...`, см. выше про именование):
 
-- `app/api/admin/services/route.ts`
-- `app/api/admin/services/[id]/route.ts`
+- платформа / старый CRUD UI: `app/api/admin/services/route.ts`, `app/api/admin/services/[id]/route.ts`
+- кабинет провайдера: `app/api/pro/services/route.ts`, `app/api/pro/services/[id]/route.ts`
 
 Они вызывают `getServiceManagementContext(...)` из `core/auth/server-authorization.ts`, затем:
 

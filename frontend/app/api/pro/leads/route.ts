@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetchBackendAsUser("/admin/service-leads", session.user.id);
+    const response = await fetchBackendAsUser("/pro/service-leads", session.user.id);
     const payload = await response.json().catch(() => ({ error: "Failed to fetch service leads" }));
     return NextResponse.json(payload, { status: response.status });
   } catch (error) {

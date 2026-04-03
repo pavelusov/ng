@@ -8,9 +8,19 @@ import { ServicesModule } from './services/services.module';
 import { ServiceLeadsModule } from './service-leads/service-leads.module';
 import { UsersModule } from './users/users.module';
 import { ProvidersModule } from './providers/providers.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ServicesModule, ServiceLeadsModule, OrdersModule, UsersModule, ProvidersModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    ServicesModule,
+    ServiceLeadsModule,
+    OrdersModule,
+    UsersModule,
+    ProvidersModule,
+    ChatModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

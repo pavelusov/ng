@@ -50,6 +50,6 @@ describe("GET /api/pro/orders", () => {
 
     expect(response.status).toBe(200);
     expect(json).toEqual(payload);
-    expect(mockedFetchBackendAsUser).toHaveBeenCalledWith("/admin/orders", "user-1");
+    expect(mockedFetchBackendAsUser).toHaveBeenCalledWith("/pro/orders", "user-1");
   });
 });

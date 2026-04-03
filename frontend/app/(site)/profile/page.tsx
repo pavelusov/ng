@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Container,
@@ -25,6 +26,7 @@ import { useAppSelector } from "@/core/store/hooks";
 import type { AuthMembership } from "@/core/auth/authorization";
 import { CustomerLeadsSection } from "@/widgets/customer-leads/ui/CustomerLeadsSection";
 import { CustomerOrdersSection } from "@/widgets/customer-orders/ui/CustomerOrdersSection";
+import { useChatSocket } from "@/widgets/chat/socket/ChatSocketContext";
 
 function getInitials(name: string | null | undefined): string {
   if (!name) return "U";
@@ -55,6 +57,8 @@ interface ProfileSidebarProps {
 }
 
 function ProfileSidebar({ selectedSection, onSelectSection }: ProfileSidebarProps) {
+  const { unreadByLeadId } = useChatSocket();
+  const unreadTotal = useMemo(() => Object.values(unreadByLeadId).reduce((acc, value) => acc + value, 0), [unreadByLeadId]);
   return (
     <Paper
       variant="outlined"
@@ -88,7 +92,9 @@ function ProfileSidebar({ selectedSection, onSelectSection }: ProfileSidebarProp
           onClick={() => onSelectSection("orders")}
         >
           <ListItemIcon sx={{ minWidth: 36 }}>
-            <ReceiptLongOutlinedIcon />
+            <Badge color="error" badgeContent={unreadTotal} max={99} invisible={unreadTotal === 0}>
+              <ReceiptLongOutlinedIcon />
+            </Badge>
           </ListItemIcon>
           <ListItemText
             primary="Заказы"
@@ -109,7 +115,9 @@ function ProfileSidebar({ selectedSection, onSelectSection }: ProfileSidebarProp
           onClick={() => onSelectSection("leads")}
         >
           <ListItemIcon sx={{ minWidth: 36 }}>
-            <AssignmentTurnedInOutlinedIcon />
+            <Badge color="error" badgeContent={unreadTotal} max={99} invisible={unreadTotal === 0}>
+              <AssignmentTurnedInOutlinedIcon />
+            </Badge>
           </ListItemIcon>
           <ListItemText
             primary="Заявки"

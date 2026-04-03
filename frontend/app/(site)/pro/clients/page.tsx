@@ -23,7 +23,7 @@ export default async function ProClientsPage() {
   let orders: OrderDto[];
 
   try {
-    orders = await fetchBackendJsonAsUser<OrderDto[]>("/admin/orders", session.user.id);
+    orders = await fetchBackendJsonAsUser<OrderDto[]>("/pro/orders", session.user.id);
   } catch (error) {
     if (error instanceof BackendApiError && (error.status === 401 || error.status === 403)) {
       notFound();

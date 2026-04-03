@@ -6,8 +6,6 @@ import { getServerAuthSession } from "@/lib/auth";
 import { ServicesAdminClient } from "../ServicesAdminClient";
 
 export default async function ServicesAdminListPage() {
-  if (process.env.NODE_ENV === "production") notFound();
-
   const session = await getServerAuthSession();
   if (!session?.user?.id) notFound();
 

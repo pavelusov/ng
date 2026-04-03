@@ -21,6 +21,8 @@ import {
   type ServiceLeadStatusFilter,
   type PendingServiceLeadDraft,
 } from "@/entities/service-lead";
+import { useChatSocket } from "@/widgets/chat/socket/ChatSocketContext";
+import { ChatThreadLinkButton } from "@/widgets/chat/ui/ChatThreadLinkButton";
 
 type Props = {
   autoResumeEnabled: boolean;
@@ -37,6 +39,7 @@ function noticeFromKey(value?: string | null) {
 }
 
 export function CustomerLeadsSection({ autoResumeEnabled, noticeKey, resumeState }: Props) {
+  const { refreshUnreadByLeads } = useChatSocket();
   const router = useRouter();
   const didAttemptAutoResume = useRef(false);
   const [leads, setLeads] = useState<ServiceLeadDto[]>([]);
@@ -78,6 +81,14 @@ export function CustomerLeadsSection({ autoResumeEnabled, noticeKey, resumeState
       return byStatus && bySearch;
     });
   }, [filter, leads, search]);
+
+  useEffect(() => {
+    const ids = leads.filter((lead) => lead.customerUserId).map((lead) => lead.id);
+    if (ids.length === 0) {
+      return;
+    }
+    void refreshUnreadByLeads(ids);
+  }, [leads, refreshUnreadByLeads]);
 
   async function loadLeads() {
     setLoading(true);
@@ -269,6 +280,18 @@ export function CustomerLeadsSection({ autoResumeEnabled, noticeKey, resumeState
                 <Typography variant="body2" color="text.secondary">
                   Отправлено: {formatServiceLeadDate(lead.createdAt)}
                 </Typography>
+              }
+              rightActions={
+                <ChatThreadLinkButton
+                  href={`/leads/${lead.id}`}
+                  serviceLeadId={lead.id}
+                  label="Открыть"
+                  tooltip={
+                    lead.customerUserId
+                      ? undefined
+                      : "Чат станет доступен, когда заявка будет привязана к вашему аккаунту."
+                  }
+                />
               }
               infoText={`Статус отклика: ${getServiceLeadStatusLabel(lead.status)}.${
                 lead.status === "CONVERTED_TO_ORDER"

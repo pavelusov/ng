@@ -10,10 +10,12 @@ import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type { ReactNode } from "react";
+import { useEffect, useMemo } from "react";
 import type { AuthMembership } from "@/core/auth/authorization";
 import type { OrderDto } from "@/entities/order";
 import type { ServiceLeadDto } from "@/entities/service-lead";
 import type { ServiceDto } from "@/entities/service";
+import { useChatSocket } from "@/widgets/chat/socket/ChatSocketContext";
 
 type Props = {
   provider: Pick<AuthMembership, "providerName" | "providerType" | "role">;
@@ -122,6 +124,27 @@ function MetricRow({ label, value }: { label: string; value: string }) {
 }
 
 export function ProOverviewDashboard({ provider, services, leads, orders }: Props) {
+  const { refreshUnreadByLeads } = useChatSocket();
+  const unreadLeadIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const lead of leads) {
+      if (lead.customerUserId) {
+        ids.add(lead.id);
+      }
+    }
+    for (const order of orders) {
+      ids.add(order.serviceLeadId);
+    }
+    return [...ids];
+  }, [leads, orders]);
+
+  useEffect(() => {
+    if (unreadLeadIds.length === 0) {
+      return;
+    }
+    void refreshUnreadByLeads(unreadLeadIds);
+  }, [refreshUnreadByLeads, unreadLeadIds]);
+
   const servicesStats = services.reduce(
     (acc, service) => {
       acc.total += 1;

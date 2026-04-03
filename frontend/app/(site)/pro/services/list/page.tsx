@@ -20,7 +20,7 @@ export default async function ProServicesListPage() {
   let services: ServiceDto[];
 
   try {
-    services = await fetchBackendJsonAsUser<ServiceDto[]>("/admin/services", session.user.id);
+    services = await fetchBackendJsonAsUser<ServiceDto[]>("/pro/services", session.user.id);
   } catch (error) {
     if (error instanceof BackendApiError && (error.status === 401 || error.status === 403)) {
       notFound();

@@ -19,7 +19,7 @@ export default async function ProLeadsPage() {
   let leads: ServiceLeadDto[];
 
   try {
-    leads = await fetchBackendJsonAsUser<ServiceLeadDto[]>("/admin/service-leads", session.user.id);
+    leads = await fetchBackendJsonAsUser<ServiceLeadDto[]>("/pro/service-leads", session.user.id);
   } catch (error) {
     if (error instanceof BackendApiError && (error.status === 401 || error.status === 403)) {
       notFound();

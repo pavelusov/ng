@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetchBackendAsUser("/admin/services", session.user.id);
+    const response = await fetchBackendAsUser("/pro/services", session.user.id);
     const payload = await response.json().catch(() => ({ error: "Failed to fetch services" }));
     return NextResponse.json(payload, { status: response.status });
   } catch (error) {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const response = await fetchBackendAsUser("/admin/services", session.user.id, {
+    const response = await fetchBackendAsUser("/pro/services", session.user.id, {
       method: "POST",
       headers: {
         "content-type": "application/json",

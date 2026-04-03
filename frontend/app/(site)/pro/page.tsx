@@ -28,9 +28,9 @@ export default async function ProDashboardPage() {
 
   try {
     const [services, leads, orders] = await Promise.all([
-      fetchBackendJsonAsUser<ServiceDto[]>("/admin/services", session.user.id),
-      fetchBackendJsonAsUser<ServiceLeadDto[]>("/admin/service-leads", session.user.id),
-      fetchBackendJsonAsUser<OrderDto[]>("/admin/orders", session.user.id),
+      fetchBackendJsonAsUser<ServiceDto[]>("/pro/services", session.user.id),
+      fetchBackendJsonAsUser<ServiceLeadDto[]>("/pro/service-leads", session.user.id),
+      fetchBackendJsonAsUser<OrderDto[]>("/pro/orders", session.user.id),
     ]);
 
     const sortByRecent = <T extends { updatedAt: string; createdAt?: string }>(items: T[]) =>

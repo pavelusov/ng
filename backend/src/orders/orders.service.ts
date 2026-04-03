@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -64,6 +65,19 @@ export class OrdersService {
     return rows.map((row) => orderDbRowToDtoPlain(row as OrderDbRow));
   }
 
+  async getCustomerOrderById(customerUserId: string, id: string): Promise<OrderDto> {
+    const row = await this.prisma.order.findFirst({
+      where: { id, customerUserId },
+      select: orderSelect,
+    });
+
+    if (!row) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return orderDbRowToDtoPlain(row as OrderDbRow);
+  }
+
   async getOrders(scope?: OrderScope): Promise<OrderDto[]> {
     const rows = await this.prisma.order.findMany({
       where: scope?.providerId ? { providerId: scope.providerId } : undefined,
@@ -72,6 +86,19 @@ export class OrdersService {
     });
 
     return rows.map((row) => orderDbRowToDtoPlain(row as OrderDbRow));
+  }
+
+  async getOrderById(id: string, scope?: OrderScope): Promise<OrderDto> {
+    const row = await this.prisma.order.findFirst({
+      where: scope?.providerId ? { id, providerId: scope.providerId } : { id },
+      select: orderSelect,
+    });
+
+    if (!row) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return orderDbRowToDtoPlain(row as OrderDbRow);
   }
 
   async getManagementContext(request: Request, action: OrderManagementAction) {

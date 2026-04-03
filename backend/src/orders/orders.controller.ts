@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Param, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { OrdersService } from './orders.service';
 
@@ -12,11 +12,38 @@ export class OrdersController {
     return this.ordersService.getCustomerOrders(actorUserId);
   }
 
+  @Get('orders/mine/:id')
+  async getCustomerOrderById(@Req() request: Request, @Param('id') id: string) {
+    const actorUserId = this.ordersService.getRequiredActorUserId(request);
+    return this.ordersService.getCustomerOrderById(actorUserId, id);
+  }
+
+  @Get('pro/orders')
+  async getProOrders(@Req() request: Request) {
+    const context = await this.ordersService.getManagementContext(request, 'read');
+    if (context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    return this.ordersService.getOrders(
+      { providerId: context.providerId },
+    );
+  }
+
+  @Get('pro/orders/:id')
+  async getProOrderById(@Req() request: Request, @Param('id') id: string) {
+    const context = await this.ordersService.getManagementContext(request, 'read');
+    if (context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    return this.ordersService.getOrderById(id, { providerId: context.providerId });
+  }
+
   @Get('admin/orders')
   async getAdminOrders(@Req() request: Request) {
     const context = await this.ordersService.getManagementContext(request, 'read');
-    return this.ordersService.getOrders(
-      context.isPlatformAdmin ? undefined : { providerId: context.providerId },
-    );
+    if (!context.isPlatformAdmin) {
+      throw new ForbiddenException('Forbidden');
+    }
+    return this.ordersService.getOrders();
   }
 }

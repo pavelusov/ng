@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetchBackendAsUser(`/admin/services/${id}`, session.user.id);
+    const response = await fetchBackendAsUser(`/pro/services/${id}`, session.user.id);
     const payload = await response.json().catch(() => ({ error: "Failed to fetch service" }));
     return NextResponse.json(payload, { status: response.status });
   } catch (error) {
@@ -36,7 +36,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const response = await fetchBackendAsUser(`/admin/services/${id}`, session.user.id, {
+    const response = await fetchBackendAsUser(`/pro/services/${id}`, session.user.id, {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
@@ -63,7 +63,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetchBackendAsUser(`/admin/services/${id}`, session.user.id, {
+    const response = await fetchBackendAsUser(`/pro/services/${id}`, session.user.id, {
       method: "DELETE",
     });
     const payload = await response.json().catch(() => ({ error: "Failed to delete service" }));

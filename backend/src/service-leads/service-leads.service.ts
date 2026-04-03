@@ -128,6 +128,17 @@ export class ServiceLeadsService {
     return rows.map((row) => serviceLeadDbRowToDtoPlain(row as ServiceLeadDbRow));
   }
 
+  async getCustomerServiceLeadById(customerUserId: string, id: string): Promise<ServiceLeadDto> {
+    const row = await this.prisma.serviceLead.findFirst({
+      where: { id, customerUserId },
+      select: serviceLeadSelect,
+    });
+    if (!row) {
+      throw new NotFoundException('Service lead not found');
+    }
+    return serviceLeadDbRowToDtoPlain(row as ServiceLeadDbRow);
+  }
+
   async getServiceLeadById(id: string, scope?: ServiceLeadScope): Promise<ServiceLeadDto> {
     const row = await this.getScopedLeadRow(id, scope?.providerId);
     return serviceLeadDbRowToDtoPlain(row);

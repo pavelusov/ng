@@ -39,13 +39,7 @@ describe("Admin services create page", () => {
     setNodeEnv((originalNodeEnv as "development" | "production" | "test" | undefined) ?? "test");
   });
 
-  it("calls notFound in production", async () => {
-    setNodeEnv("production");
-    await expect(ServicesAdminCreatePage()).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(notFoundMock).toHaveBeenCalled();
-  });
-
-  it("renders client in non-production mode", async () => {
+  it("renders create flow when authorized", async () => {
     setNodeEnv("test");
     const element = await ServicesAdminCreatePage();
 

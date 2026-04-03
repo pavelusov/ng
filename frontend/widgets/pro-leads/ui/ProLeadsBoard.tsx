@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
 import {
   Alert,
@@ -21,6 +21,8 @@ import {
   type ServiceLeadStatus,
   type ServiceLeadStatusFilter,
 } from "@/entities/service-lead";
+import { useChatSocket } from "@/widgets/chat/socket/ChatSocketContext";
+import { ChatThreadLinkButton } from "@/widgets/chat/ui/ChatThreadLinkButton";
 
 type Props = {
   initialLeads: ServiceLeadDto[];
@@ -45,6 +47,7 @@ function getNextActions(status: ServiceLeadStatus): Array<{ status: ServiceLeadS
 }
 
 export function ProLeadsBoard({ initialLeads }: Props) {
+  const { refreshUnreadByLeads } = useChatSocket();
   const [leads, setLeads] = useState(initialLeads);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -91,6 +94,14 @@ export function ProLeadsBoard({ initialLeads }: Props) {
       return byStatus && bySearch;
     });
   }, [filter, leads, search]);
+
+  useEffect(() => {
+    const ids = leads.filter((lead) => lead.customerUserId).map((lead) => lead.id);
+    if (ids.length === 0) {
+      return;
+    }
+    void refreshUnreadByLeads(ids);
+  }, [leads, refreshUnreadByLeads]);
 
   async function patchStatus(lead: ServiceLeadDto, status: ServiceLeadStatus) {
     setBusyId(lead.id);
@@ -184,22 +195,39 @@ export function ProLeadsBoard({ initialLeads }: Props) {
                 </>
               }
               rightActions={
-                nextActions.length > 0 ? (
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {nextActions.map((action) => (
-                      <Button
-                        key={action.status}
-                        variant={action.status === "IN_PROGRESS" ? "contained" : "outlined"}
-                        color={action.status === "CLOSED" ? "inherit" : action.status === "CONVERTED_TO_ORDER" ? "success" : "primary"}
-                        size="small"
-                        disabled={busyId === lead.id}
-                        onClick={() => patchStatus(lead, action.status)}
-                      >
-                        {action.label}
-                      </Button>
-                    ))}
-                  </Stack>
-                ) : null
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+                  {nextActions.length > 0
+                    ? nextActions.map((action) => (
+                        <Button
+                          key={action.status}
+                          variant={action.status === "IN_PROGRESS" ? "contained" : "outlined"}
+                          color={
+                            action.status === "CLOSED"
+                              ? "inherit"
+                              : action.status === "CONVERTED_TO_ORDER"
+                                ? "success"
+                                : "primary"
+                          }
+                          size="small"
+                          disabled={busyId === lead.id}
+                          onClick={() => patchStatus(lead, action.status)}
+                        >
+                          {action.label}
+                        </Button>
+                      ))
+                    : null}
+                  <ChatThreadLinkButton
+                    href={`/pro/leads/${lead.id}`}
+                    serviceLeadId={lead.id}
+                    label="Открыть"
+                    tooltip={
+                      lead.customerUserId
+                        ? undefined
+                        : "Чат будет доступен после привязки заявки к аккаунту клиента."
+                    }
+                    disabled={false}
+                  />
+                </Stack>
               }
               infoText={`Этап воронки: ${getServiceLeadStatusLabel(lead.status)}.${
                 lead.status === "CONVERTED_TO_ORDER"

@@ -33,6 +33,7 @@ describe("Admin services API /api/admin/services", () => {
     mockedGetServerAuthSession.mockResolvedValue({
       user: {
         id: "user-1",
+        systemRole: "PLATFORM_ADMIN",
       },
     });
   });
@@ -41,18 +42,23 @@ describe("Admin services API /api/admin/services", () => {
     setNodeEnv((originalNodeEnv as "development" | "production" | "test" | undefined) ?? "test");
   });
 
-  it("returns 404 in production mode for GET", async () => {
-    setNodeEnv("production");
+  it("returns 403 when user is not PLATFORM_ADMIN for GET", async () => {
+    mockedGetServerAuthSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+        systemRole: "CUSTOMER",
+      },
+    });
 
     const response = (await GET({} as NextRequest))!;
     const json = await response.json();
 
-    expect(response.status).toBe(404);
-    expect(json).toEqual({ error: "Not found" });
+    expect(response.status).toBe(403);
+    expect(json).toEqual({ error: "Forbidden" });
     expect(mockedFetchBackendAsUser).not.toHaveBeenCalled();
   });
 
-  it("returns services for GET in non-production mode", async () => {
+  it("returns services for GET when platform admin", async () => {
     const rows = [{ ...mainService, id: "svc-1" }];
     mockedFetchBackendAsUser.mockResolvedValue(
       new Response(JSON.stringify(rows), {
@@ -69,8 +75,13 @@ describe("Admin services API /api/admin/services", () => {
     expect(mockedFetchBackendAsUser).toHaveBeenCalledWith("/admin/services", "user-1");
   });
 
-  it("returns 404 in production mode for POST", async () => {
-    setNodeEnv("production");
+  it("returns 403 when user is not PLATFORM_ADMIN for POST", async () => {
+    mockedGetServerAuthSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+        systemRole: "CUSTOMER",
+      },
+    });
 
     const request = new Request("http://localhost/api/admin/services", {
       method: "POST",
@@ -80,8 +91,8 @@ describe("Admin services API /api/admin/services", () => {
     const response = (await POST(request))!;
     const json = await response.json();
 
-    expect(response.status).toBe(404);
-    expect(json).toEqual({ error: "Not found" });
+    expect(response.status).toBe(403);
+    expect(json).toEqual({ error: "Forbidden" });
     expect(mockedFetchBackendAsUser).not.toHaveBeenCalled();
   });
 

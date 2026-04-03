@@ -4,8 +4,6 @@ import { getServiceManagementContext } from "@/core/auth/server-authorization";
 import { ServicesAdminClient } from "../ServicesAdminClient";
 
 export default async function ServicesAdminCreatePage() {
-  if (process.env.NODE_ENV === "production") notFound();
-
   const auth = await getServiceManagementContext("create");
   if ("error" in auth || !auth.context.providerId) notFound();
 

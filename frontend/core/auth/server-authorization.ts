@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import { defineAbilityFor, getActiveMembership, serviceSubject, type AppAction } from "@/core/auth/authorization";
+import type { Session } from "next-auth";
+
+/** BFF `/api/admin/*`: только PLATFORM_ADMIN (провайдер ходит в `/api/pro/*`). */
+export async function requirePlatformAdminApi(): Promise<
+  { ok: true; session: Session } | { ok: false; response: NextResponse }
+> {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    return { ok: false, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  if (session.user.systemRole !== "PLATFORM_ADMIN") {
+    return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  return { ok: true, session };
+}
 
 type ServiceManagementAction = Extract<AppAction, "read" | "create" | "update" | "delete">;
 

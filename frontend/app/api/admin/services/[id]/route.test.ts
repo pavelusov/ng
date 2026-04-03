@@ -33,6 +33,7 @@ describe("Admin services API /api/admin/services/[id]", () => {
     mockedGetServerAuthSession.mockResolvedValue({
       user: {
         id: "user-1",
+        systemRole: "PLATFORM_ADMIN",
       },
     });
   });
@@ -41,18 +42,25 @@ describe("Admin services API /api/admin/services/[id]", () => {
     setNodeEnv((originalNodeEnv as "development" | "production" | "test" | undefined) ?? "test");
   });
 
-  it("returns 404 in production mode for PATCH", async () => {
-    setNodeEnv("production");
+  it("returns 403 when user is not PLATFORM_ADMIN for PATCH", async () => {
+    mockedGetServerAuthSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+        systemRole: "CUSTOMER",
+      },
+    });
+
     const request = new Request("http://localhost/api/admin/services/1", {
       method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: "New title" }),
     }) as unknown as NextRequest;
 
     const response = (await PATCH(request, { params: Promise.resolve({ id: "1" }) }))!;
     const json = await response.json();
 
-    expect(response.status).toBe(404);
-    expect(json).toEqual({ error: "Not found" });
+    expect(response.status).toBe(403);
+    expect(json).toEqual({ error: "Forbidden" });
     expect(mockedFetchBackendAsUser).not.toHaveBeenCalled();
   });
 
@@ -153,13 +161,18 @@ describe("Admin services API /api/admin/services/[id]", () => {
     });
   });
 
-  it("returns 404 in production mode for DELETE", async () => {
-    setNodeEnv("production");
+  it("returns 403 when user is not PLATFORM_ADMIN for DELETE", async () => {
+    mockedGetServerAuthSession.mockResolvedValue({
+      user: {
+        id: "user-1",
+        systemRole: "CUSTOMER",
+      },
+    });
 
     const response = (await DELETE({} as NextRequest, { params: Promise.resolve({ id: "1" }) }))!;
     const json = await response.json();
 
-    expect(response.status).toBe(404);
-    expect(json).toEqual({ error: "Not found" });
+    expect(response.status).toBe(403);
+    expect(json).toEqual({ error: "Forbidden" });
   });
 });

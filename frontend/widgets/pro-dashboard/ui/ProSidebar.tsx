@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Badge,
   Box,
   Collapse,
   Divider,
@@ -25,6 +26,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import { useMemo, useState } from "react";
+import { useChatSocket } from "@/widgets/chat/socket/ChatSocketContext";
 
 const NAV_ITEMS = [
   {
@@ -80,11 +82,13 @@ const SERVICES_GROUP = {
 
 export function ProSidebar() {
   const pathname = usePathname();
+  const { unreadByLeadId } = useChatSocket();
   const isServicesRoute = useMemo(
     () => pathname === SERVICES_GROUP.hrefPrefix || pathname.startsWith(`${SERVICES_GROUP.hrefPrefix}/`),
     [pathname]
   );
   const [servicesOpen, setServicesOpen] = useState<boolean>(true);
+  const unreadTotal = useMemo(() => Object.values(unreadByLeadId).reduce((acc, value) => acc + value, 0), [unreadByLeadId]);
 
   return (
     <Paper
@@ -108,6 +112,14 @@ export function ProSidebar() {
       <List dense disablePadding>
         {NAV_ITEMS.map((item, index) => {
           const selected = pathname === item.href;
+          const badgeEnabled = item.href === "/pro/leads" || item.href === "/pro/orders";
+          const icon = badgeEnabled ? (
+            <Badge color="error" badgeContent={unreadTotal} max={99} invisible={unreadTotal === 0}>
+              {item.icon}
+            </Badge>
+          ) : (
+            item.icon
+          );
           return (
             <ListItemButton
               key={item.href}
@@ -128,7 +140,7 @@ export function ProSidebar() {
                 }),
               }}
             >
-              <ListItemIcon sx={{ minWidth: 36, mt: 0.25 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 36, mt: 0.25 }}>{icon}</ListItemIcon>
               <ListItemText
                 primary={item.label}
                 secondary={item.description}

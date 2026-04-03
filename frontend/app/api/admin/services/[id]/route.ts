@@ -1,29 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requirePlatformAdminApi } from "@/core/auth/server-authorization";
 import { fetchBackendAsUser } from "@/lib/backend-api";
-import { getServerAuthSession } from "@/lib/auth";
-
-function ensureDevOnly() {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-  return null;
-}
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const devOnly = ensureDevOnly();
-  if (devOnly) return devOnly;
+  const gate = await requirePlatformAdminApi();
+  if (!gate.ok) return gate.response;
 
   const { id } = await params;
 
   try {
-    const session = await getServerAuthSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { session } = gate;
     const body = await request.json();
     const response = await fetchBackendAsUser(`/admin/services/${id}`, session.user.id, {
       method: "PATCH",
@@ -47,17 +36,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const devOnly = ensureDevOnly();
-  if (devOnly) return devOnly;
+  const gate = await requirePlatformAdminApi();
+  if (!gate.ok) return gate.response;
 
   const { id } = await params;
 
   try {
-    const session = await getServerAuthSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { session } = gate;
     const response = await fetchBackendAsUser(`/admin/services/${id}`, session.user.id, {
       method: "DELETE",
     });

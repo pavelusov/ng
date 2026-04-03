@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetchBackendAsUser("/admin/orders", session.user.id);
+    const response = await fetchBackendAsUser("/pro/orders", session.user.id);
     const payload = await response.json().catch(() => ({ error: "Failed to fetch provider orders" }));
     return NextResponse.json(payload, { status: response.status });
   } catch (error) {

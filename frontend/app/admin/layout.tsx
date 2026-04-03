@@ -1,14 +1,23 @@
 import type { ReactNode } from "react";
 import { Box, Container } from "@mui/material";
+import { forbidden, redirect } from "next/navigation";
 import { Header } from "@/widgets/header/ui";
 import { Footer } from "@/widgets/footer/ui/Footer";
 import { AdminSidebar } from "@/widgets/admin-sidebar";
+import { getServerAuthSession } from "@/lib/auth";
 
 interface Props {
   readonly children: ReactNode;
 }
 
-export default function AdminLayout({ children }: Props) {
+export default async function AdminLayout({ children }: Props) {
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    redirect("/signin");
+  }
+  if (session.user.systemRole !== "PLATFORM_ADMIN") {
+    forbidden();
+  }
   const SIDEBAR_W = 280;
   const HEADER_H = 82;
 
